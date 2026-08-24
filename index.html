@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLC+ Web — Track Layout Creator</title>
+<meta name="description" content="TLC+ Web — Track Layout Creator + web port. Design race track layouts and export TED files. MIT-licensed port of the desktop tool by eran0004 &amp; daydrive7.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E1E1E'/%3E%3Cpath d='M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008' fill='none' stroke='%2364D2FF' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Splash screen -->
+<div id="splash">
+    <div class="splash-inner">
+      <svg viewBox="0 0 32 32" class="splash-icon" aria-hidden="true"><path d="M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div class="splash-name">TLC+ Web</div>
+      <div class="splash-version">Web v1.0.0 &middot; desktop beta v1.2.0-beta2</div>
+    </div>
+</div>
+
+<div id="app" class="hidden">
+
+  <!-- Custom title bar -->
+  <header id="titlebar">
+    <div class="tb-left">
+      <svg viewBox="0 0 32 32" class="tb-logo" aria-hidden="true"><path d="M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <span class="tb-title">TLC+ WEB</span>
+    </div>
+    <nav class="tb-menus" aria-label="Main menu">
+      <button class="tb-menu-btn" id="mb-file" data-menu="file">File</button>
+      <button class="tb-menu-btn" id="mb-edit" data-menu="edit">Edit</button>
+      <button class="tb-menu-btn" id="mb-theme" data-menu="theme">Theme</button>
+      <button class="tb-menu-btn" id="mb-help" data-menu="help">Help</button>
+    </nav>
+    <span class="tb-version" title="Desktop releases: stable v1.1.2 &middot; beta v1.2.0-beta2">Web v1.0.0</span>
+  </header>
+
+  <!-- Dropdown menus -->
+  <div id="menu-layer"></div>
+
+  <div id="main">
+
+    <!-- Left sidebar -->
+    <aside id="left-panel" aria-label="Settings sidebar">
+      <div id="tab-bar" role="tablist">
+        <button class="tab-btn active" id="btn-tab-geom" role="tab" data-tab="geometry">Geometry</button>
+        <button class="tab-btn" id="btn-tab-map" role="tab" data-tab="map">Map &amp; Toggles</button>
+        <button class="tab-btn" id="btn-tab-gen" role="tab" data-tab="generators">Generators</button>
+      </div>
+      <div id="sidebar-scroll">
+
+        <!-- TAB 1: GEOMETRY -->
+        <div class="sidebar-tab" id="tab-geometry" role="tabpanel">
+          <div class="sec-label">ROAD GEOMETRY</div>
+          <div class="slider-row" data-min="0.01" data-max="100" data-res="0.05" data-var="roadWidth"
+               data-tip="The width of the road"><label>Road width (m)</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0" data-max="30" data-res="0.1" data-var="maxCamberAngle"
+               data-tip="Camber will not exceed this value (global corners)"><label>Max camber angle (&deg;)</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0.01" data-max="0.5" data-res="0.01" data-var="camberRate"
+               data-tip="Camber transition will not exceed this rate (global corners)"><label>Camber rate (&deg;/m)</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="-1" data-max="1" data-res="0.1" data-var="camberAxis"
+               data-tip="Set the location of the camber pivoting point.&#10;-1 = inner edge&#10;0 = center&#10;1 = outer edge"><label>Camber axis</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0" data-max="1" data-res="0.05" data-var="smoothMix"
+               data-tip="Set how much the elevation will be smoothed out"><label>Surface smoothing</label><input type="range"><span class="slider-val"></span></div>
+
+          <div class="sec-label">TRACK SCALING &amp; FLAGS</div>
+          <div class="slider-row" data-min="2" data-max="10" data-res="1" data-var="sectorScale"
+               data-tip="Set the number of sectors for the track"><label>Number of sectors</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0.5" data-max="2" data-res="0.1" data-var="roadBaseLen"
+               data-tip="Set the scale of the [ROAD] data in the exported .ted file"><label>Road length factor</label><input type="range"><span class="slider-val"></span></div>
+
+          <div class="sec-label">START &amp; PIT LINE LOGIC</div>
+          <div class="check-row" data-var="separateStartPit" data-cmd="updatePitUI"><label><input type="checkbox">Separate Pit/Start</label></div>
+          <div id="pit-slider-align" class="slider-row" data-min="-2500" data-max="2500" data-res="50" data-var="pitOffset"
+               data-tip="Moves both the Pit Lane and Start Line together."><label>Start/Pit Alignment (m)</label><input type="range"><span class="slider-val"></span></div>
+          <div id="pit-slider-start" class="slider-row hidden" data-min="-5000" data-max="5000" data-res="10" data-var="startOffset"
+               data-tip="Move the line relative to the Pits."><label>Start Line Shift (m)</label><input type="range"><span class="slider-val"></span></div>
+          <div id="pit-slider-pit" class="slider-row hidden" data-min="-5000" data-max="5000" data-res="50" data-var="pitOffset2"
+               data-tip="Slide the entire visual Pit Lane along the track."><label>Pit Lane Offset (m)</label><input type="range"><span class="slider-val"></span></div>
+
+          <div class="sec-label">ROAD MODES</div>
+          <div class="check-row" data-var="circuit" data-cmd="displayChange"><label><input type="checkbox">Circuit</label></div>
+          <div class="check-row" data-var="narrowRoad" data-cmd="displayChange"><label><input type="checkbox">Narrow road</label></div>
+          <div class="check-row" data-var="shortStraight" data-cmd="displayChange"><label><input type="checkbox">Short straight</label></div>
+
+          <div class="sec-label">MANUAL HEIGHT CONTROLS</div>
+          <div class="check-row" data-var="manualHeight" data-cmd="displayChange"><label><input type="checkbox">Enable Manual Height</label></div>
+          <div class="slider-row" data-min="0" data-max="1" data-res="0.05" data-var="manualHeightIn"
+               data-tip="1.0 = Gradual climb spanning the entire segment.&#10;0.0 = Instant vertical jump at the end."><label>Ramp UP Transition (In)</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0" data-max="1" data-res="0.05" data-var="manualHeightOut"
+               data-tip="1.0 = Gradual descent spanning the entire segment.&#10;0.0 = Instant vertical drop at the start."><label>Ramp DOWN Transition (Out)</label><input type="range"><span class="slider-val"></span></div>
+
+          <div class="sec-label">OTHER TOOLS</div>
+          <div class="btn-row">
+            <button class="tool-icon-btn" id="btn-rotate-tool" title="Equip Rotate Tool" data-tip="Equip Rotate Tool"><svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 1 1-6.3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 3v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="tool-icon-btn" id="btn-scale-tool" title="Equip Scale Tool" data-tip="Equip Scale Tool"><svg viewBox="0 0 24 24"><path d="M4 20 L20 4 M20 4h-6 M20 4v6 M4 20h6 M4 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="tool-icon-btn" id="btn-random-tool" title="Randomize Selected Nodes" data-tip="Randomize Selected Nodes"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 7.5h4M15.5 5.5v4 M7.5 13v4M5.5 15.5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+
+        <!-- TAB 2: MAP & TOGGLES -->
+        <div class="sidebar-tab hidden" id="tab-map" role="tabpanel">
+          <div class="sec-label">ELEVATION MAP DETAILS</div>
+          <div class="slider-row" data-min="0" data-max="5" data-res="1" data-var="heightMapFidelity"
+               data-tip="Set vertical resolution of heightmap.&#10;Decreasing this may improve performance."><label>Heightmap fidelity</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="0" data-max="5000" data-res="200" data-var="mapBorder"
+               data-tip="Set the scroll margin around map borders"><label>Scroll margin</label><input type="range"><span class="slider-val"></span></div>
+          <div class="slider-row" data-min="5" data-max="12" data-res="1" data-var="labelFontSize"
+               data-tip="Set the font size of most labels"><label>Label font size</label><input type="range"><span class="slider-val"></span></div>
+
+          <div class="sec-label">DISPLAY TOGGLES</div>
+          <div class="check-row" data-var="displayGrid" data-cmd="canvasChange"><label><input type="checkbox">Draw Grid</label></div>
+          <div class="check-row" data-var="snap" data-cmd="displayChange"><label><input type="checkbox">Snap to Grid</label></div>
+          <div class="check-row" data-var="displayHeightmap" data-cmd="canvasChange"><label><input type="checkbox">Heightmap Background</label></div>
+          <div class="check-row" data-var="displayReferencePath" data-cmd="canvasChange"><label><input type="checkbox">Reference Path</label></div>
+          <div class="check-row" data-var="displayRoad" data-cmd="trackChange"><label><input type="checkbox">Road Surface</label></div>
+          <div class="check-row" data-var="displayRoadBorder" data-cmd="trackChange"><label><input type="checkbox">Road Border Lines</label></div>
+          <div class="check-row" data-var="displayRoadWidth" data-cmd="trackChange"><label><input type="checkbox">Road Width Highlight</label></div>
+          <div class="check-row" data-var="displayPolygon" data-cmd="polygonChange"><label><input type="checkbox">Control Polygon</label></div>
+          <div class="check-row" data-var="displayCornerCountLabels" data-cmd="displayChange"><label><input type="checkbox">Corner Number Labels</label></div>
+          <div class="check-row" data-var="displayPolygonLabels" data-cmd="displayChange"><label><input type="checkbox">Polygon Vertex ID Labels</label></div>
+          <div class="check-row" data-var="optimizeInteraction" data-cmd="displayChange"><label><input type="checkbox">Performance Draft Mode</label></div>
+          <div class="check-row" data-var="manualHeightEase" data-cmd="navCanvasChange"><label><input type="checkbox">Smooth Elevation Graph</label></div>
+
+          <div class="sec-label">TRACK LENGTH LABELS</div>
+          <div class="check-row" data-var="displayTracklengthLabels" data-cmd="trackChange"><label><input type="checkbox">Show Track Length Labels</label></div>
+          <div class="check-row" data-var="displayLabels" data-cmd="trackChange"><label><input type="checkbox">Show All Labels</label></div>
+          <div class="radio-row-group" id="tracklength-mode">
+            <label><input type="radio" name="tlmode" value="Length" checked> Length</label>
+            <label><input type="radio" name="tlmode" value="Distance"> Distance</label>
+            <label><input type="radio" name="tlmode" value="Measure"> Measure</label>
+          </div>
+        </div>
+
+        <!-- TAB 3: GENERATORS -->
+        <div class="sidebar-tab hidden" id="tab-generators" role="tabpanel">
+          <div id="proc-container">
+            <div class="sec-label">PROCEDURAL TRACK BUILDER</div>
+            <p class="sec-desc">Generate mathematical track layouts instantly:</p>
+            <button class="styled-btn" data-gen="gp">Grand Prix (Fast &amp; Flowing)</button>
+            <button class="styled-btn" data-gen="tech">Technical / Karting (Twisty)</button>
+            <button class="styled-btn" data-gen="oval">Oval / Speedway (4-Turn)</button>
+            <button class="styled-btn" data-gen="rally">Rally Stage (Point-to-Point)</button>
+            <button class="styled-btn" data-gen="chaos">Abstract / Chaos (Random)</button>
+            <button class="styled-btn secondary" id="btn-random-layout">Random Layout (Legacy)</button>
+          </div>
+
+          <div id="img-container" class="hidden">
+            <div class="sec-label">IMAGE VECTORIZER</div>
+            <p class="sec-desc">Trace a track layout from a PNG/JPG image using advanced algorithms:</p>
+            <div class="radio-row-group" id="trace-modes">
+              <label><input type="radio" name="tracemode" value="centerline" checked> Centerline (Drivable)</label>
+              <label><input type="radio" name="tracemode" value="outline"> Outline (Shape)</label>
+              <label><input type="radio" name="tracemode" value="smart-outline"> Smart Fill (TSP)</label>
+            </div>
+            <button class="styled-btn success" id="btn-trace-image">Trace Image</button>
+          </div>
+
+          <div id="imp-container">
+            <div class="sec-label">EXTERNAL PATH IMPORTS</div>
+            <button class="styled-btn" id="btn-import-gpx">Import GPX Path (.gpx)</button>
+            <button class="styled-btn" id="btn-import-csv">Import CSV Path (.csv)</button>
+            <button class="styled-btn" id="btn-import-ted-ref">Import TED File (Static Reference)</button>
+            <div class="slider-row" data-min="0.01" data-max="3" data-res="0.01" data-var="referenceScale"
+                 data-tip="Dynamically scales the imported reference path.&#10;1.0 = Original real-world size.&#10;0.5 = Half size."><label>Reference Path Scale (x)</label><input type="range"><span class="slider-val"></span></div>
+            <button class="styled-btn danger" id="btn-clear-ref">Clear Reference Path</button>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <div id="sidebar-divider" title="Show/Hide the Left Settings Sidebar"></div>
+
+    <!-- Right panel -->
+    <div id="right-panel">
+      <div id="canvas-area">
+        <canvas id="ruler-north" class="ruler-north" height="24"></canvas>
+        <canvas id="ruler-west" class="ruler-west" width="24"></canvas>
+        <canvas id="main-canvas"></canvas>
+
+        <!-- Floating toolbar -->
+        <div id="toolbar" role="toolbar" aria-label="Canvas tools">
+          <button class="tool-btn" data-tool="pen" data-tip="Pen tool" title="Pen tool">
+            <svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="selection" data-tip="Selection tool" title="Selection tool">
+            <svg viewBox="0 0 24 24"><path d="M6 3l12 8-5 1 3 6-2.5 1.2-3-6L7 17l-1-14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="camber" data-tip="Camber tool" title="Camber tool">
+            <svg viewBox="0 0 24 24"><path d="M3 17c4-8 14-8 18 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 17l18 0" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="pan" data-tip="Panning tool" title="Panning tool">
+            <svg viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6.5 7S5 17.5 5 14v-3a1.5 1.5 0 0 1 3 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="toolbar-sep"></div>
+          <button class="tool-btn" id="btn-zoom-in" data-tip="Zoom in" title="Zoom in"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 7v6M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="tool-btn" id="btn-zoom-out" data-tip="Zoom out" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <div class="toolbar-sep"></div>
+          <button class="tool-btn" id="btn-reverse" data-tip="Reverse direction" title="Reverse direction"><svg viewBox="0 0 24 24"><path d="M4 9h13M13 4l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15H7M11 10l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="tool-btn" id="btn-screenshot" data-tip="Save screenshot" title="Save screenshot"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 7l1.5-3h3L15 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+          <div class="toolbar-sep"></div>
+          <button class="styled-btn sidebar-toggle-btn" id="btn-toggle-sidebar">Sidebar</button>
+        </div>
+
+        <!-- Stats card -->
+        <div id="stats-card">
+          <span class="stat-label">Scene:</span><span class="stat-value" id="stat-scenery">Eifel Flat</span>
+          <span class="stat-label">Length:</span><span class="stat-value" id="stat-length">--- m</span>
+          <span class="stat-label">Corners:</span><span class="stat-value" id="stat-corners">0</span>
+        </div>
+      </div>
+
+      <!-- Draggable splitter -->
+      <div id="elev-splitter" title="Drag to resize the elevation graph"></div>
+
+      <div id="nav-area">
+        <canvas id="nav-ruler" class="nav-ruler" width="24"></canvas>
+        <canvas id="nav-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip" class="hidden"></div>
+
+<!-- Modal layer -->
+<div id="modal-layer"></div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="file-input" class="hidden">
+
+<script src="js/locales.js"></script>
+<script src="js/geometry.js"></script>
+<script src="js/heightmap.js"></script>
+<script src="js/ted.js"></script>
+<script src="js/construct.js"></script>
+<script src="js/trace.js"></script>
+<script src="js/generators.js"></script>
+<script src="js/isoview.js"></script>
+<script src="js/app.js"></script>
+<script src="js/interact.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

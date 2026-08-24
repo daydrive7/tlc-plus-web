@@ -1,12 +1,25 @@
-# TLC+ Web
+# TLC+ Web — Track Layout Creator +
 
-**TLC+ Web** is a faithful web port of **Track Layout Creator +** —
+**TLC+ Web v1.0.0** is a faithful web port of **Track Layout Creator +** —
 the GT6 track layout editor by **eran0004** (original creator) and
 **daydrive7** (community modifications) — rebuilt as a fully static
 HTML/CSS/JS application that runs entirely in the browser.
 
 The port is based on desktop release **v1.2.0-beta2** (latest beta; the
 current stable desktop release is **v1.1.2**).
+
+The web port produces **byte-identical `.TED` exports** to the original
+desktop application — verified against the original Python exporter with a
+fixed test track.
+
+## Verification status
+
+| Test | Result |
+|---|---|
+| TED export vs original Python (8 varied cases: circuits, rally P2P, all 4 sceneries, narrow/short roads, manual heights, hairpins, pit offsets, wide euler) | ✅ byte-identical (only creation timestamp differs) |
+| TED round-trip (export → parse → counts/roads/heights) | ✅ all cases |
+| TED → editable polygon re-import | ✅ all cases |
+| `.TRK5` save/load round-trip (points + full state) | ✅ all cases |
 
 ## Features
 

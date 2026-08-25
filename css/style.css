@@ -114,6 +114,21 @@ button { font-family: inherit; }
 .dropdown-menu .menu-sub-label {
   padding: 4px 18px; color: var(--grey); font-size: 11px;
 }
+/* Flyout submenu (Language ▸) */
+.menu-item.has-submenu {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+}
+.menu-item.has-submenu .menu-arrow {
+  font-size: 11px; color: var(--grey); flex: 0 0 auto;
+}
+.dropdown-menu .menu-item.sub-item {
+  display: flex; align-items: center; gap: 8px;
+}
+.dropdown-menu .menu-item.sub-item .menu-check {
+  flex: 0 0 14px; width: 14px; color: var(--accent); font-size: 12px; text-align: center;
+}
+.dropdown-menu .menu-item:hover .menu-arrow { color: var(--white); }
+.dropdown-menu.submenu { min-width: 150px; }
 
 /* ============ Main layout ============ */
 #main { flex: 1; display: flex; min-height: 0; }
@@ -287,7 +302,7 @@ button { font-family: inherit; }
 
 /* Floating toolbar — 2-column grid like the original desktop app
  * (row = index//2, column = index%2: pen|selection, camber|pan,
- *  zoom in|zoom out, reverse|screenshot, Sidebar button spanning both) */
+ *  zoom in|zoom out, undo|redo, reverse|screenshot, Sidebar spanning) */
 #toolbar {
   position: absolute; top: 12px; left: 34px; z-index: 20;
   background: var(--darker-silver);
@@ -444,6 +459,39 @@ button { font-family: inherit; }
 /* Help / credits text */
 .help-text { white-space: pre-wrap; font-family: Consolas, "Courier New", monospace; font-size: 12px; line-height: 1.55; }
 .credits-text { white-space: pre-wrap; line-height: 1.6; }
+
+/* Vault (browser track storage) */
+.vault-note { color: var(--grey); font-size: 11.5px; margin-bottom: 10px; line-height: 1.5; }
+.vault-input {
+  width: 100%; padding: 7px 10px;
+  background: var(--darker-silver); color: var(--white);
+  border: 1px solid var(--light-silver); border-radius: 3px;
+  font-size: 12.5px; font-family: inherit;
+}
+.vault-input:focus { border-color: var(--accent); outline: none; }
+.vault-list-title {
+  margin: 12px 0 4px; font-size: 10px; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase; color: var(--accent-light);
+}
+.vault-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.vault-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--silver); border: 1px solid var(--light-silver);
+  border-radius: 4px; padding: 8px 10px; cursor: pointer;
+}
+.vault-row:hover { border-color: var(--accent); }
+.vault-info { flex: 1; min-width: 0; }
+.vault-name { font-size: 12.5px; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vault-meta { font-size: 11px; color: var(--grey); margin-top: 2px; }
+.vault-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.vault-btn {
+  background: var(--darker-silver); color: var(--white);
+  border: 1px solid var(--lighter-silver); border-radius: 3px;
+  padding: 5px 12px; font-size: 11.5px; cursor: pointer;
+}
+.vault-btn:hover { background: var(--accent); border-color: var(--accent); }
+.vault-btn.danger:hover { background: var(--red); border-color: var(--red); }
+.vault-empty { color: var(--grey); font-size: 12px; padding: 14px 0; text-align: center; }
 
 /* ============ Isometric overlay ============ */
 .iso-overlay {

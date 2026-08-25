@@ -314,11 +314,11 @@ function showHelpWindow() {
 function showCreditsWindow() {
   const lang = (window.TLC_LOCALES || {})[CURRENT_LANG];
   const text = (lang && lang['CREDITS_TEXT']) ||
-    'Original Creator for TLC+:\n' +
+    'Original Creator of TLC+:\n' +
     '  \u2022 daydrive7 (Discord, TikTok)\n\n' +
     'Community Modifications & Version 1.2:\n' +
     '  \u2022 daydrive7 (Discord, GitHub)\n\n' +
-    'Original Creator for TLC (original):\n' +
+    'Original Creator of TLC (original):\n' +
     '  \u2022 eran0004 (GTPlanet)';
   openModal(tr('Credits'), (body) => {
     const div = document.createElement('div');
@@ -948,6 +948,9 @@ function toggleSidebar() {
   const divider = document.getElementById('sidebar-divider');
   const collapsed = panel.classList.toggle('hidden');
   divider.classList.toggle('hidden', collapsed);
+  // On mobile the sidebar is a drawer — show a backdrop to close it by tapping outside
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (backdrop) backdrop.classList.toggle('hidden', collapsed || !isMobileLayout());
   setTimeout(() => { sizeCanvases(); displayChange(); }, 20);
 }
 
@@ -1021,38 +1024,6 @@ function initCollapsibleSections() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Elevation graph expand / restore                                    */
-/* ------------------------------------------------------------------ */
-function initNavExpand() {
-  const btn = document.getElementById('nav-expand-btn');
-  const navArea = document.getElementById('nav-area');
-  if (!btn || !navArea) return;
-  let prevH = null;
-
-  function setHeight(h) {
-    navArea.style.flexBasis = h + 'px';
-    navArea.style.height = h + 'px';
-    sizeCanvases();
-    displayChange();
-    saveConfig();
-  }
-
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const curH = navArea.getBoundingClientRect().height;
-    const expanded = navArea.classList.toggle('expanded');
-    if (expanded) {
-      prevH = curH;
-      btn.title = tr('Restore elevation graph size');
-      setHeight(Math.round(window.innerHeight * 0.6));
-    } else {
-      btn.title = tr('Expand elevation graph');
-      setHeight(prevH && prevH > 40 ? prevH : 160);
-    }
-  });
-}
-
-/* ------------------------------------------------------------------ */
 /* Elevation splitter drag                                            */
 /* ------------------------------------------------------------------ */
 function initSplitter() {
@@ -1060,6 +1031,15 @@ function initSplitter() {
   const navArea = document.getElementById('nav-area');
   let dragging = false;
   let startY = 0, startH = 0;
+
+  function applyResize(clientY) {
+    const h = Math.max(50, Math.min(window.innerHeight - 200, startH - (clientY - startY)));
+    navArea.style.flexBasis = h + 'px';
+    navArea.style.height = h + 'px';
+    sizeCanvases();
+    displayChange();
+  }
+
   splitter.addEventListener('mousedown', (e) => {
     dragging = true;
     startY = e.clientY;
@@ -1068,14 +1048,61 @@ function initSplitter() {
   });
   window.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    const h = Math.max(50, Math.min(window.innerHeight - 200, startH - (e.clientY - startY)));
-    navArea.style.flexBasis = h + 'px';
-    navArea.style.height = h + 'px';
-    sizeCanvases();
-    displayChange();
+    applyResize(e.clientY);
   });
   window.addEventListener('mouseup', () => {
     if (dragging) { dragging = false; saveConfig(); }
+  });
+
+  // Touch support (mobile): drag the splitter with a finger
+  splitter.addEventListener('touchstart', (e) => {
+    dragging = true;
+    startY = e.touches[0].clientY;
+    startH = navArea.getBoundingClientRect().height;
+    e.preventDefault();
+  }, { passive: false });
+  splitter.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    applyResize(e.touches[0].clientY);
+    e.preventDefault();
+  }, { passive: false });
+  splitter.addEventListener('touchend', () => {
+    if (dragging) { dragging = false; saveConfig(); }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile layout (sidebar drawer + backdrop)                           */
+/* ------------------------------------------------------------------ */
+function isMobileLayout() {
+  return window.matchMedia('(max-width: 700px)').matches;
+}
+
+function initMobile() {
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (backdrop) backdrop.addEventListener('click', toggleSidebar);
+
+  // Start with the sidebar closed on small screens
+  if (isMobileLayout()) {
+    document.getElementById('left-panel').classList.add('hidden');
+    document.getElementById('sidebar-divider').classList.add('hidden');
+  }
+
+  // Handle crossing the desktop/mobile breakpoint (rotate, resize)
+  window.addEventListener('resize', () => {
+    const panel = document.getElementById('left-panel');
+    const divider = document.getElementById('sidebar-divider');
+    if (isMobileLayout()) {
+      if (!panel.classList.contains('hidden')) {
+        panel.classList.add('hidden');
+        divider.classList.add('hidden');
+        if (backdrop) backdrop.classList.add('hidden');
+      }
+    } else {
+      panel.classList.remove('hidden');
+      divider.classList.remove('hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
   });
 }
 
@@ -1114,7 +1141,7 @@ function initApp() {
   initSidebar();
   initMenus();
   initSplitter();
-  initNavExpand();
+  initMobile();
   initTooltips();
   initWarningFlasher();
   bindCanvasEvents();

@@ -858,6 +858,81 @@ function bindCanvasEvents() {
     else showNavTooltip(e);
   });
   navCanvas.addEventListener('mouseleave', hideNavTooltip);
+
+  // Nav canvas touch: tap to place a cursor
+  navCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) navLeftClick(e.touches[0]);
+  }, { passive: false });
+
+  // ---- Touch support (mobile) ----
+  // 1 finger  = active tool (pen / selection / camber / pan)
+  // 2 fingers = pinch-zoom + two-finger pan
+  let pinchState = null;
+
+  function touchPos(e, idx) {
+    const t = e.touches[idx];
+    const rect = canvas.getBoundingClientRect();
+    return [t.clientX - rect.left, t.clientY - rect.top];
+  }
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      const [mx, my] = touchPos(e, 0);
+      dragging = true;
+      rightDragging = false;
+      leftClick(mx, my, false, false);
+      if (toolMode === 'pan') mouseLocation = { x: mx, y: my };
+    } else if (e.touches.length === 2) {
+      e.preventDefault();
+      dragging = false; // second finger cancels the single-finger action
+      const [x1, y1] = touchPos(e, 0);
+      const [x2, y2] = touchPos(e, 1);
+      pinchState = {
+        dist: Math.hypot(x2 - x1, y2 - y1) || 1,
+        zoom: zoom,
+        cx: (x1 + x2) / 2,
+        cy: (y1 + y2) / 2,
+        panX: panX,
+        panY: panY
+      };
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && dragging) {
+      e.preventDefault();
+      const [mx, my] = touchPos(e, 0);
+      b1Motion(mx, my);
+    } else if (e.touches.length === 2 && pinchState) {
+      e.preventDefault();
+      const [x1, y1] = touchPos(e, 0);
+      const [x2, y2] = touchPos(e, 1);
+      const dist = Math.hypot(x2 - x1, y2 - y1) || 1;
+      const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+      // New zoom from pinch scale (clamped like zoomEvent)
+      const newZoom = Math.max(minZoom, Math.min(maxZoom, pinchState.zoom * (dist / pinchState.dist)));
+      // Keep the world point that was under the initial midpoint under the
+      // current midpoint — this yields pinch-zoom AND two-finger panning.
+      const worldX = (pinchState.cx - pinchState.panX) / pinchState.zoom;
+      const worldY = (pinchState.cy - pinchState.panY) / pinchState.zoom;
+      zoom = newZoom;
+      panX = cx - worldX * zoom;
+      panY = cy - worldY * zoom;
+      clampPan();
+      displayChange();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (dragging) { dragging = false; b1Release(); }
+    if (e.touches.length < 2) pinchState = null;
+  });
+  canvas.addEventListener('touchcancel', () => {
+    if (dragging) { dragging = false; b1Release(); }
+    pinchState = null;
+  });
 }
 
 function bindKeyboard() {

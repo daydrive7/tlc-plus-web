@@ -180,7 +180,7 @@ function editPointProperties() {
 /* Preferences dialog                                                 */
 /* ------------------------------------------------------------------ */
 function preferencesWindow() {
-  openModal(tr('Sidebar Module Manager'), (body, backdrop) => {
+  openModal(tr('Preferences'), (body, backdrop) => {
     const prefNote = (key) => {
       const el = document.createElement('div');
       el.className = 'pref-note';
@@ -200,13 +200,6 @@ function preferencesWindow() {
       label.appendChild(document.createTextNode(tr(labelKey)));
       return label;
     }
-
-    const sec1 = document.createElement('div');
-    sec1.className = 'pref-section';
-    sec1.appendChild(checkbox('Show Procedural Track Builder', () => S.showProcGen, v => S.showProcGen = v, () => { updateSidebarVisibility(); saveConfig(); }));
-    sec1.appendChild(checkbox('Show Image Vectorizer', () => S.showImgVec, v => S.showImgVec = v, () => { updateSidebarVisibility(); saveConfig(); }));
-    sec1.appendChild(checkbox('Show External Path Imports', () => S.showExtPath, v => S.showExtPath = v, () => { updateSidebarVisibility(); saveConfig(); }));
-    body.appendChild(sec1);
 
     const sec2 = document.createElement('div');
     sec2.className = 'pref-section';
@@ -346,10 +339,51 @@ function showCreditsWindow() {
 /* Menus                                                              */
 /* ------------------------------------------------------------------ */
 let openMenuBtn = null;
+let openSubMenu = null;
+function closeSubMenu() {
+  if (openSubMenu) { openSubMenu.remove(); openSubMenu = null; }
+}
+
 function closeMenus() {
+  closeSubMenu();
   document.querySelectorAll('.dropdown-menu').forEach(m => m.remove());
   document.querySelectorAll('.tb-menu-btn.open').forEach(b => b.classList.remove('open'));
   openMenuBtn = null;
+}
+
+/* Flyout submenu (e.g. Language ▸) — opens to the right of the parent item,
+ * flipping to the left / clamping up when it would overflow the viewport.
+ * Opens on hover (desktop) and on click/tap (mobile). */
+function openSubMenuFor(anchorItem, children) {
+  closeSubMenu();
+  const sub = document.createElement('div');
+  sub.className = 'dropdown-menu submenu';
+  for (const child of children) {
+    const btn = document.createElement('button');
+    btn.className = 'menu-item sub-item';
+    const chk = document.createElement('span');
+    chk.className = 'menu-check';
+    chk.textContent = child.check ? '\u2713' : '';
+    btn.appendChild(chk);
+    btn.appendChild(document.createTextNode(child.label));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeMenus();
+      child.action();
+    });
+    sub.appendChild(btn);
+  }
+  document.getElementById('menu-layer').appendChild(sub);
+  const rect = anchorItem.getBoundingClientRect();
+  const w = sub.offsetWidth, h = sub.offsetHeight;
+  let left = rect.right + 2;
+  if (left + w > window.innerWidth - 8) left = Math.max(8, rect.left - w - 2);
+  let top = rect.top;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+  sub.style.left = left + 'px';
+  sub.style.top = top + 'px';
+  sub._anchor = anchorItem;
+  openSubMenu = sub;
 }
 
 function showMenu(anchorBtn, items) {
@@ -371,9 +405,27 @@ function showMenu(anchorBtn, items) {
       menu.appendChild(lbl);
       continue;
     }
+    if (item.children) {
+      const btn = document.createElement('button');
+      btn.className = 'menu-item has-submenu';
+      btn.appendChild(document.createTextNode(item.label));
+      const arrow = document.createElement('span');
+      arrow.className = 'menu-arrow';
+      arrow.textContent = '\u25B8';
+      btn.appendChild(arrow);
+      btn.addEventListener('mouseenter', () => openSubMenuFor(btn, item.children));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (openSubMenu && openSubMenu._anchor === btn) closeSubMenu();
+        else openSubMenuFor(btn, item.children);
+      });
+      menu.appendChild(btn);
+      continue;
+    }
     const btn = document.createElement('button');
     btn.className = 'menu-item' + (item.danger ? ' danger' : '');
     btn.textContent = item.label;
+    btn.addEventListener('mouseenter', closeSubMenu);
     btn.addEventListener('click', () => {
       closeMenus();
       item.action();
@@ -396,6 +448,9 @@ const MENU_BUILDERS = {
       ['Portugu\u00EAs (PT)', 'pt-pt'], ['Fran\u00E7ais', 'fr'], ['Deutsch', 'de'],
       ['\u65E5\u672C\u8A9E', 'ja'], ['\u0420\u0443\u0441\u0441\u043A\u0438\u0439', 'ru'],
     ];
+    /* Grouped layout: track files + browser vault, then all import/export
+     * converters (TED pairs kept together), then render outputs, then app
+     * settings with languages tucked into a flyout submenu. */
     return [
       { label: tr('Load track'), action: loadTrackFile },
       { label: tr('Save track'), action: saveTrackFile },
@@ -403,22 +458,19 @@ const MENU_BUILDERS = {
       { label: tr('Load from Browser') + ' \u2605', action: vaultLoadDialog },
       '-',
       { label: tr('Import polygon'), action: importPolygonFile },
-      { label: tr('Export polygon'), action: exportPolygonFile },
       { label: tr('Import TED'), action: importTedEditable },
-      '-',
+      { label: tr('Export polygon'), action: exportPolygonFile },
       { label: tr('Export to TED'), action: exportTEDFile },
+      '-',
       { label: tr('Save screenshot (PNG)'), action: exportScreen },
       { label: tr('Draw isometric view'), action: drawIsoMap },
       '-',
-      { label: tr('Preferences'), action: preferencesWindow },
-      '-',
-      { labelOnly: tr('Language') },
-      ...LANGS.map(([name, code]) => ({
-        label: (code === CURRENT_LANG ? '\u2713 ' : '   ') + name,
+      { label: tr('Language'), children: LANGS.map(([name, code]) => ({
+        label: name,
+        check: code === CURRENT_LANG,
         action: () => setLanguage(code),
-      })),
-      '-',
-      { label: tr('Quit'), action: () => { saveConfig(); location.reload(); }, danger: true },
+      })) },
+      { label: tr('Preferences'), action: preferencesWindow },
     ];
   },
   edit: () => [

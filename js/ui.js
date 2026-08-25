@@ -319,10 +319,7 @@ function showCreditsWindow() {
     'Community Modifications & Version 1.2:\n' +
     '  \u2022 daydrive7 (Discord, GitHub)\n\n' +
     'Original Creator for TLC (original):\n' +
-    '  \u2022 eran0004 (GTPlanet)\n' +
-    '    - Automatic High-DPI screen scaling & modern dark visual theme\n' +
-    '    - Start/Finish line & exact physics length computation fixes\n' +
-    '    - Custom track width boundaries and procedural math builders';
+    '  \u2022 eran0004 (GTPlanet)';
   openModal(tr('Credits'), (body) => {
     const div = document.createElement('div');
     div.className = 'credits-text';

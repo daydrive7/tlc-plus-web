@@ -315,9 +315,9 @@ function showCreditsWindow() {
   const lang = (window.TLC_LOCALES || {})[CURRENT_LANG];
   const text = (lang && lang['CREDITS_TEXT']) ||
     'Original Creator of TLC+:\n' +
-    '  \u2022 daydrive7 (Discord, GitHub, TikTok)\n\n' +
+    '  \u2022 daydrive7 (Discord, TikTok)\n\n' +
     'Community Modifications & Version 1.2:\n' +
-    '  \u2022 daydrive7 (Discord, GitHub, TikTok)\n\n' +
+    '  \u2022 daydrive7 (Discord, GitHub)\n\n' +
     'Original Creator of TLC (original):\n' +
     '  \u2022 eran0004 (GTPlanet)';
   openModal(tr('Credits'), (body) => {
@@ -336,7 +336,8 @@ function showCreditsWindow() {
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
       '  \u2022 Desktop releases: stable v1.1.2 \u00B7 latest beta v1.2.0-beta2.\n' +
-      '  \u2022 Runs fully client-side; hostable on GitHub Pages. MIT licensed.';
+      '  \u2022 Runs fully client-side; hostable on GitHub Pages. MIT licensed.\n' +
+      '  \u2022 Some features can be exclusively for TLC+ Web.';
     div.appendChild(web);
   });
 }
@@ -398,6 +399,8 @@ const MENU_BUILDERS = {
     return [
       { label: tr('Load track'), action: loadTrackFile },
       { label: tr('Save track'), action: saveTrackFile },
+      { label: tr('Save to Browser') + ' \u2605', action: vaultSaveDialog },
+      { label: tr('Load from Browser') + ' \u2605', action: vaultLoadDialog },
       '-',
       { label: tr('Import polygon'), action: importPolygonFile },
       { label: tr('Export polygon'), action: exportPolygonFile },
@@ -419,9 +422,6 @@ const MENU_BUILDERS = {
     ];
   },
   edit: () => [
-    { label: tr('Undo') + ' (Ctrl+Z)', action: undo },
-    { label: tr('Redo') + ' (Ctrl+Y)', action: redo },
-    '-',
     { label: tr('Select All') + ' (A)', action: selectAll },
     { label: tr('Deselect') + ' (Esc)', action: escapeKey },
     '-',
@@ -609,6 +609,238 @@ function exportPolygonFile() {
   const csv = polygonToCSV(polygon);
   downloadBlob(new Blob([csv], { type: 'text/plain' }), timestampName('.pgn'));
   toast(tr('Polygon exported'), 'success');
+}
+
+/* ------------------------------------------------------------------ */
+/* Local track vault (browser storage) — TLC+ Web exclusive            */
+/* Tracks are persisted in localStorage as base64 TRK5 payloads,      */
+/* like in-game save files: name them, list them, load/delete anytime. */
+/* ------------------------------------------------------------------ */
+const VAULT_KEY = 'tlcp_vault';
+
+function vaultRead() {
+  try {
+    const raw = localStorage.getItem(VAULT_KEY);
+    if (!raw) return {};
+    const obj = JSON.parse(raw);
+    return (obj && typeof obj === 'object' && !Array.isArray(obj)) ? obj : {};
+  } catch (e) { return {}; }
+}
+
+function vaultWrite(vault) {
+  try {
+    localStorage.setItem(VAULT_KEY, JSON.stringify(vault));
+    return true;
+  } catch (e) {
+    messageBox(tr('Error'), tr('Browser storage is full or unavailable.'));
+    return false;
+  }
+}
+
+function vaultNames() {
+  const vault = vaultRead();
+  return Object.keys(vault).sort((a, b) =>
+    String(vault[b].savedAt || '').localeCompare(String(vault[a].savedAt || '')));
+}
+
+function bytesToBase64(buffer) {
+  const u8 = new Uint8Array(buffer);
+  let s = '';
+  for (let i = 0; i < u8.length; i += 0x8000) {
+    s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return u8.buffer;
+}
+
+function defaultVaultName() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return 'Track ' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+    ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function vaultMetaText(entry) {
+  const d = new Date(entry.savedAt);
+  const pad = (n) => String(n).padStart(2, '0');
+  const dateStr = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+    ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  const lenStr = entry.length >= 1000 ? (entry.length / 1000).toFixed(1) + ' km' : entry.length + ' m';
+  return dateStr + ' \u00B7 ' + lenStr + ' \u00B7 ' + entry.points + ' pts' +
+    (entry.circuit ? ' \u00B7 ' + tr('Circuit') : '');
+}
+
+function vaultSaveDialog() {
+  if (polygon.length < 2) {
+    messageBox(tr('Error'), tr('Polygon has too few points. Need at least 3 for a circuit or 2 for point-to-point.'));
+    return;
+  }
+  openModal(tr('Save Track to Browser'), (body, backdrop) => {
+    const note = document.createElement('div');
+    note.className = 'vault-note';
+    note.textContent = tr('Tracks are stored inside this browser (like save files in a game) and stay on this device.');
+    body.appendChild(note);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'vault-input';
+    input.placeholder = tr('Track name');
+    input.maxLength = 60;
+    body.appendChild(input);
+
+    async function doSave() {
+      const name = (input.value.trim() || defaultVaultName()).slice(0, 60);
+      const vault = vaultRead();
+      if (vault[name]) {
+        const i = await messageBox(tr('Overwrite track'),
+          '"' + name + '" ' + tr('already exists in the browser storage. Overwrite it?'),
+          [tr('Cancel'), tr('Overwrite')]);
+        if (i !== 1) return;
+      }
+      vault[name] = {
+        data: bytesToBase64(makeTrk5(S, polygon)),
+        savedAt: new Date().toISOString(),
+        points: polygon.length,
+        length: Math.round(trackLengthState.total),
+        circuit: !!S.circuit
+      };
+      if (vaultWrite(vault)) {
+        toast(tr('Track saved to browser'), 'success');
+        backdrop.remove();
+      }
+    }
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'modal-btn';
+    saveBtn.style.width = '100%';
+    saveBtn.style.marginTop = '8px';
+    saveBtn.textContent = tr('Save Track');
+    saveBtn.addEventListener('click', doSave);
+    body.appendChild(saveBtn);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSave(); });
+
+    const names = vaultNames();
+    if (names.length) {
+      const listTitle = document.createElement('div');
+      listTitle.className = 'vault-list-title';
+      listTitle.textContent = tr('Existing saves (click to rename/overwrite)');
+      body.appendChild(listTitle);
+      const list = document.createElement('div');
+      list.className = 'vault-list';
+      for (const name of names) {
+        const row = document.createElement('div');
+        row.className = 'vault-row';
+        row.title = tr('Click to use this name');
+        const info = document.createElement('div');
+        info.className = 'vault-info';
+        const nm = document.createElement('div');
+        nm.className = 'vault-name';
+        nm.textContent = name;
+        const meta = document.createElement('div');
+        meta.className = 'vault-meta';
+        meta.textContent = vaultMetaText(vaultRead()[name]);
+        info.appendChild(nm); info.appendChild(meta);
+        row.appendChild(info);
+        row.addEventListener('click', () => { input.value = name; input.focus(); });
+        list.appendChild(row);
+      }
+      body.appendChild(list);
+    }
+    setTimeout(() => input.focus(), 50);
+  });
+}
+
+function vaultLoadTrack(name) {
+  const entry = vaultRead()[name];
+  if (!entry) return;
+  try {
+    const parsed = parseTrkFile(base64ToBytes(entry.data));
+    if (!parsed || !parsed.polygon.length) {
+      messageBox(tr('Error'), tr('Could not read track file.'));
+      return;
+    }
+    saveToHistory();
+    polygon = parsed.polygon;
+    Object.assign(S, parsed.state);
+    selectedPoints = [];
+    syncSidebarControls();
+    loadHeightMap(false).then(() => {
+      displayChange();
+      centerOnTrack();
+    });
+    toast(tr('Track loaded'), 'success');
+  } catch (e) {
+    console.error(e);
+    messageBox(tr('Error'), String(e.message || e));
+  }
+}
+
+function vaultLoadDialog() {
+  openModal(tr('Load Track from Browser'), (body, backdrop) => {
+    const names = vaultNames();
+    if (!names.length) {
+      const empty = document.createElement('div');
+      empty.className = 'vault-empty';
+      empty.textContent = tr('No saved tracks yet. Save one via File \u2192 Save to Browser.');
+      body.appendChild(empty);
+      return;
+    }
+    const list = document.createElement('div');
+    list.className = 'vault-list';
+    for (const name of names) {
+      const entry = vaultRead()[name];
+      const row = document.createElement('div');
+      row.className = 'vault-row';
+      const info = document.createElement('div');
+      info.className = 'vault-info';
+      const nm = document.createElement('div');
+      nm.className = 'vault-name';
+      nm.textContent = name;
+      const meta = document.createElement('div');
+      meta.className = 'vault-meta';
+      meta.textContent = vaultMetaText(entry);
+      info.appendChild(nm); info.appendChild(meta);
+      row.appendChild(info);
+
+      const actions = document.createElement('div');
+      actions.className = 'vault-actions';
+      const loadBtn = document.createElement('button');
+      loadBtn.className = 'vault-btn';
+      loadBtn.textContent = tr('Load');
+      loadBtn.addEventListener('click', () => { backdrop.remove(); vaultLoadTrack(name); });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'vault-btn danger';
+      delBtn.textContent = tr('Delete');
+      delBtn.addEventListener('click', async () => {
+        const i = await messageBox(tr('Delete track'),
+          '"' + name + '" ' + tr('will be deleted from browser storage.'),
+          [tr('Cancel'), tr('Delete')]);
+        if (i !== 1) return;
+        const vault = vaultRead();
+        delete vault[name];
+        vaultWrite(vault);
+        row.remove();
+        if (!Object.keys(vault).length) {
+          const empty = document.createElement('div');
+          empty.className = 'vault-empty';
+          empty.textContent = tr('No saved tracks yet. Save one via File \u2192 Save to Browser.');
+          list.replaceWith(empty);
+        }
+        toast(tr('Track deleted'));
+      });
+      actions.appendChild(loadBtn);
+      actions.appendChild(delBtn);
+      row.appendChild(actions);
+      list.appendChild(row);
+    }
+    body.appendChild(list);
+  });
 }
 
 function importTedEditable() {
@@ -882,6 +1114,8 @@ function initSidebar() {
   document.getElementById('btn-zoom-out').addEventListener('click', zoomOut);
   document.getElementById('btn-reverse').addEventListener('click', flipDirection);
   document.getElementById('btn-screenshot').addEventListener('click', exportScreen);
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-redo').addEventListener('click', redo);
   document.getElementById('btn-toggle-sidebar').addEventListener('click', toggleSidebar);
 
   document.getElementById('btn-rotate-tool').addEventListener('click', () => setToolMode('rotate'));

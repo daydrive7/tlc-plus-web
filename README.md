@@ -106,13 +106,9 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-  Additional community-added features: GPX & CSV path import, automatic
-  High-DPI scaling & modern dark theme, start/finish line & exact physics
-  length computation fixes, custom track width boundaries and procedural
-  math builders.
 - **TLC+ Web v1.0.0** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
-GT6, Gran Turismo and the Track Path Editor are products of Polyphony
+Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony
 Digital / Sony Interactive Entertainment; this community tool is not
 affiliated with them.

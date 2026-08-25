@@ -314,7 +314,15 @@ function showHelpWindow() {
 function showCreditsWindow() {
   const lang = (window.TLC_LOCALES || {})[CURRENT_LANG];
   const text = (lang && lang['CREDITS_TEXT']) ||
-    'Original Creator for TLC+:\n  \u2022 daydrive7 (Discord, TikTok)\nCommunity Modifications & Version 1.2:\n  \u2022 daydrive7 (Discord, GitHub)\n\u2022 Original Creator for TLC (original):\n eran0004 (GTPlanet\n    - Automatic High-DPI screen scaling & modern dark visual theme\n    - Start/Finish line & exact physics length computation fixes\n    - Custom track width boundaries and procedural math builders';
+    'Original Creator for TLC+:\n' +
+    '  \u2022 daydrive7 (Discord, TikTok)\n\n' +
+    'Community Modifications & Version 1.2:\n' +
+    '  \u2022 daydrive7 (Discord, GitHub)\n\n' +
+    'Original Creator for TLC (original):\n' +
+    '  \u2022 eran0004 (GTPlanet)\n' +
+    '    - Automatic High-DPI screen scaling & modern dark visual theme\n' +
+    '    - Start/Finish line & exact physics length computation fixes\n' +
+    '    - Custom track width boundaries and procedural math builders';
   openModal(tr('Credits'), (body) => {
     const div = document.createElement('div');
     div.className = 'credits-text';

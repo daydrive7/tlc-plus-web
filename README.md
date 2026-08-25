@@ -1,8 +1,7 @@
 # TLC+ Web
 
 **TLC+ Web** is a faithful web port of **Track Layout Creator +** —
-the GT6 track layout editor by **eran0004** (original creator) and
-**daydrive7** (community modifications) — rebuilt as a fully static
+the GT6 track layout editor by **daydrive7** — rebuilt as a fully static
 HTML/CSS/JS application that runs entirely in the browser.
 
 The port is based on desktop release **v1.2.0-beta2** (latest beta; the

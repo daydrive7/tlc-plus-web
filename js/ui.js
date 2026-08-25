@@ -315,9 +315,9 @@ function showCreditsWindow() {
   const lang = (window.TLC_LOCALES || {})[CURRENT_LANG];
   const text = (lang && lang['CREDITS_TEXT']) ||
     'Original Creator of TLC+:\n' +
-    '  \u2022 daydrive7 (Discord, TikTok)\n\n' +
+    '  \u2022 daydrive7 (Discord, GitHub, TikTok)\n\n' +
     'Community Modifications & Version 1.2:\n' +
-    '  \u2022 daydrive7 (Discord, GitHub)\n\n' +
+    '  \u2022 daydrive7 (Discord, GitHub, TikTok)\n\n' +
     'Original Creator of TLC (original):\n' +
     '  \u2022 eran0004 (GTPlanet)';
   openModal(tr('Credits'), (body) => {

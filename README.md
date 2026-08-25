@@ -105,9 +105,7 @@ they are loaded on demand the first time a scenery is selected.
 
 ## Credits & license
 
-- Original desktop tool **Track Layout Creator +** —
-  Copyright (c) 2017 **eran0004** (GTPlanet), Copyright (c) 2026
-  **daydrive7** (Discord, GitHub).
+- Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
   Additional community-added features: GPX & CSV path import, automatic
   High-DPI scaling & modern dark theme, start/finish line & exact physics
   length computation fixes, custom track width boundaries and procedural

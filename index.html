@@ -93,8 +93,8 @@
 
           <div class="sec-label">OTHER TOOLS</div>
           <div class="btn-row">
-            <button class="tool-icon-btn" id="btn-rotate-tool" title="Equip Rotate Tool" data-tip="Equip Rotate Tool"><svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 1 1-6.3 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 3v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="tool-icon-btn" id="btn-scale-tool" title="Equip Scale Tool" data-tip="Equip Scale Tool"><svg viewBox="0 0 24 24"><path d="M4 20 L20 4 M20 4h-6 M20 4v6 M4 20h6 M4 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="tool-icon-btn" id="btn-rotate-tool" title="Equip Rotate Tool" data-tip="Equip Rotate Tool"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><line x1="12" y1="9" x2="12" y2="15"/><line x1="9" y1="12" x2="15" y2="12"/><path d="M 7 9.5 C 7 6.5 10 5 13.5 5 C 16 5 18 6.5 19 8.5"/><path d="M 16.5 9.5 L 19.5 8.5 L 18.5 5.5"/><path d="M 17 14.5 C 17 17.5 14 19 10.5 19 C 8 19 6 17.5 5 15.5"/><path d="M 7.5 14.5 L 4.5 15.5 L 5.5 18.5"/></svg></button>
+            <button class="tool-icon-btn" id="btn-scale-tool" title="Equip Scale Tool" data-tip="Equip Scale Tool"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><rect x="7.5" y="4.5" width="12" height="12" opacity="0.4"/><rect x="4.5" y="11.5" width="8" height="8"/><line x1="8.5" y1="15.5" x2="16.5" y2="7.5" stroke-dasharray="1.5 1.5"/><path d="M 13.5 7.5 H 16.5 V 10.5"/></svg></button>
             <button class="tool-icon-btn" id="btn-random-tool" title="Randomize Selected Nodes" data-tip="Randomize Selected Nodes"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 7.5h4M15.5 5.5v4 M7.5 13v4M5.5 15.5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           </div>
         </div>
@@ -183,13 +183,13 @@
         <!-- Floating toolbar -->
         <div id="toolbar" role="toolbar" aria-label="Canvas tools">
           <button class="tool-btn" data-tool="pen" data-tip="Pen tool" title="Pen tool">
-            <svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><path d="M 19 3.5 L 20.5 5 L 7.5 18 L 4 20 L 6 16.5 Z"/><line x1="15" y1="7.5" x2="16.5" y2="9"/><line x1="12.5" y1="10" x2="14" y2="11.5"/><line x1="10" y1="12.5" x2="11.5" y2="14"/></svg>
           </button>
           <button class="tool-btn" data-tool="selection" data-tip="Selection tool" title="Selection tool">
             <svg viewBox="0 0 24 24"><path d="M6 3l12 8-5 1 3 6-2.5 1.2-3-6L7 17l-1-14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
           </button>
           <button class="tool-btn" data-tool="camber" data-tip="Camber tool" title="Camber tool">
-            <svg viewBox="0 0 24 24"><path d="M3 17c4-8 14-8 18 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 17l18 0" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><line x1="3" y1="12" x2="21" y2="12" stroke-width="1.5"/><line x1="6" y1="19" x2="18" y2="5"/><path d="M 15 12 A 3 3 0 0 0 16.5 9" stroke-dasharray="1 1"/><path d="M 9 12 A 3 3 0 0 0 7.5 15" stroke-dasharray="1 1"/><text x="17" y="8" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">α</text><text x="5" y="18" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">β</text></svg>
           </button>
           <button class="tool-btn" data-tool="pan" data-tip="Panning tool" title="Panning tool">
             <svg viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6.5 7S5 17.5 5 14v-3a1.5 1.5 0 0 1 3 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -198,7 +198,7 @@
           <button class="tool-btn" id="btn-zoom-in" data-tip="Zoom in" title="Zoom in"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 7v6M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           <button class="tool-btn" id="btn-zoom-out" data-tip="Zoom out" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           <div class="toolbar-sep"></div>
-          <button class="tool-btn" id="btn-reverse" data-tip="Reverse direction" title="Reverse direction"><svg viewBox="0 0 24 24"><path d="M4 9h13M13 4l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15H7M11 10l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="tool-btn" id="btn-reverse" data-tip="Reverse direction" title="Reverse direction"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><line x1="8" y1="8" x2="20" y2="8"/><path d="M 8 5 L 4 8 L 8 11 Z" fill="none"/><line x1="4" y1="16" x2="16" y2="16"/><path d="M 16 13 L 20 16 L 16 19 Z" fill="currentColor" stroke="none"/></svg></button>
           <button class="tool-btn" id="btn-screenshot" data-tip="Save screenshot" title="Save screenshot"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 7l1.5-3h3L15 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
           <div class="toolbar-sep"></div>
           <button class="styled-btn sidebar-toggle-btn" id="btn-toggle-sidebar">Sidebar</button>

@@ -346,23 +346,9 @@ button { font-family: inherit; }
   background: var(--darker-silver);
   min-height: 50px;
   overflow: hidden;
-  position: relative;
 }
 .nav-ruler { grid-column: 1; grid-row: 1; background: var(--darker-silver); width: 36px; height: 100%; }
-#nav-canvas { grid-column: 2; grid-row: 1; width: 100%; height: 100%; cursor: crosshair; }
-#nav-expand-btn {
-  position: absolute; top: 3px; right: 42px; z-index: 5;
-  width: 22px; height: 22px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--silver); color: var(--grey);
-  border: 1px solid var(--light-silver); border-radius: 3px;
-  cursor: pointer; padding: 0;
-  transition: color .12s, border-color .12s;
-}
-#nav-expand-btn:hover { color: var(--white); border-color: var(--accent); background: var(--accent); }
-#nav-area.expanded #nav-expand-btn {
-  color: var(--white); background: var(--accent); border-color: var(--accent);
-}
+#nav-canvas { grid-column: 2; grid-row: 1; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
 
 /* ============ Tooltip ============ */
 #tooltip {
@@ -516,11 +502,50 @@ button { font-family: inherit; }
 .toast.success { border-left-color: var(--green); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* Responsive tweaks */
+/* Responsive / mobile */
 @media (max-width: 900px) {
-  #left-panel { width: 250px; flex-basis: 250px; }
+  #left-panel { width: 260px; flex-basis: 260px; }
 }
-@media (max-width: 640px) {
-  #left-panel { position: absolute; left: 0; top: 30px; bottom: 0; z-index: 100; box-shadow: 4px 0 18px rgba(0,0,0,.5); }
-  #left-panel.collapsed-mobile { display: none; }
+
+@media (max-width: 700px) {
+  /* Sidebar becomes an off-canvas drawer */
+  #left-panel {
+    position: fixed; left: 0; top: 30px; bottom: 0;
+    width: min(300px, 86vw); flex-basis: auto;
+    z-index: 930;
+    box-shadow: 4px 0 18px rgba(0,0,0,.5);
+    animation: drawer-in .22s ease;
+  }
+  @keyframes drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+  #sidebar-divider { display: none !important; }
+  #sidebar-backdrop {
+    position: fixed; left: 0; top: 30px; right: 0; bottom: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 920;
+  }
+
+  /* Compact title bar */
+  .tb-menu-btn { padding: 4px 8px; }
+  .tb-left { padding: 0 8px; }
+  .tb-version { display: none; }
+
+  /* Larger touch targets for the canvas toolbar */
+  #toolbar { grid-template-columns: repeat(2, 34px); top: 34px; left: 30px; }
+  .tool-btn { width: 34px; height: 34px; }
+  .tool-btn svg { width: 19px; height: 19px; }
+
+  /* Compact stats card */
+  #stats-card { font-size: 10px; padding: 4px 8px; right: 8px; bottom: 8px; }
+
+  /* Smaller elevation graph */
+  #nav-area { flex: 0 0 110px; height: 110px; min-height: 60px; }
+  #elev-splitter { touch-action: none; }
+
+  /* Prevent iOS auto-zoom when focusing inputs (needs >= 16px) */
+  .slider-val, .modal-body input, .modal-body select { font-size: 16px; }
+  .slider-val { width: 62px; }
+
+  /* Modals fit the narrow screen */
+  .modal-window { min-width: 0; width: calc(100vw - 24px); max-height: 82vh; }
+  .modal-footer .styled-btn { min-width: 64px; }
 }

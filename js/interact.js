@@ -11,6 +11,7 @@ const navCanvasXMarginLeft = 2;
 const navCanvasXMarginRight = 35;
 const navCanvasYMargin = 15;
 let navTerrainCache = null;
+let navGraphData = null; // last drawn elevation profile (for hover tooltips)
 
 /* ------------------------------------------------------------------ */
 /* Elevation graph                                                    */
@@ -25,9 +26,9 @@ function drawNavCanvas() {
   const canvasWidth = rect.width;
   const canvasHeight = rect.height;
 
-  if (trackLengthState.total <= 0) { drawNavCursor(); return; }
-  if (polygon.length < 2 + (S.circuit ? 1 : 0)) { drawNavCursor(); return; }
-  if (!S.heightMap) return;
+  if (trackLengthState.total <= 0) { navGraphData = null; drawNavCursor(); return; }
+  if (polygon.length < 2 + (S.circuit ? 1 : 0)) { navGraphData = null; drawNavCursor(); return; }
+  if (!S.heightMap) { navGraphData = null; return; }
 
   const smoothGraph = S.manualHeightEase;
   let divNum = Math.floor(canvasWidth / (smoothGraph ? 2 : 10));
@@ -112,7 +113,7 @@ function drawNavCanvas() {
   navCtx.font = '8px "Segoe UI"';
   navCtx.fillStyle = THEME.NAV_LINE;
   navCtx.textAlign = 'left';
-  navCtx.fillText(tr('Elevation'), x0 + 8, y1 + 4);
+  navCtx.fillText(tr('Elevation') + ' (m)', x0 + 8, y1 + 4);
   navCtx.fillStyle = THEME.NAV_SLOPE;
   navCtx.textAlign = 'right';
   navCtx.fillText(tr('Slope'), x1, y1 + 4);
@@ -176,22 +177,62 @@ function drawNavCanvas() {
   const nrr = navRuler.getBoundingClientRect();
   navRulerCtx.setTransform(dpr2, 0, 0, dpr2, 0, 0);
   navRulerCtx.clearRect(0, 0, nrr.width, nrr.height);
-  // ---- ruler: zMax at the TOP edge, zMin at the BOTTOM edge (as the original:
-  //      drawNavCanvasRuler puts z_max at y_max and z_min at y_min) ----
-  const labelAt = (y, text) => {
-    navRulerCtx.save();
-    navRulerCtx.translate(12, y);
-    navRulerCtx.rotate(-Math.PI / 2);
-    navRulerCtx.fillStyle = THEME.NAV_LINE;
-    navRulerCtx.font = 'bold 8px "Segoe UI"';
-    navRulerCtx.textAlign = 'center';
-    navRulerCtx.fillText(text, 0, 0);
-    navRulerCtx.restore();
+  // Horizontal (non-rotated) labels for readability: zMax at the TOP edge,
+  // zMin at the BOTTOM edge, plus quarter-step ticks in between.
+  const labelAt = (y, text, bold) => {
+    const yy = Math.max(5, Math.min(nrr.height - 5, y));
+    navRulerCtx.fillStyle = bold ? THEME.NAV_LINE : THEME.NAV_GRID;
+    navRulerCtx.font = (bold ? 'bold ' : '') + '8px "Segoe UI"';
+    navRulerCtx.textAlign = 'right';
+    navRulerCtx.textBaseline = 'middle';
+    navRulerCtx.fillText(text, nrr.width - 4, yy);
+    navRulerCtx.strokeStyle = THEME.NAV_GRID;
+    navRulerCtx.beginPath();
+    navRulerCtx.moveTo(nrr.width - 3, yy);
+    navRulerCtx.lineTo(nrr.width, yy);
+    navRulerCtx.stroke();
   };
-  labelAt(y1, zMax.toFixed(0) + 'm');
-  labelAt(y0, zMin.toFixed(0) + 'm');
+  labelAt(y1, zMax.toFixed(0) + 'm', true);
+  labelAt(y0, zMin.toFixed(0) + 'm', true);
+  for (const t of [0.25, 0.5, 0.75]) {
+    const z = zMax - t * (zMax - zMin);
+    labelAt(y1 + t * (y0 - y1), z.toFixed(0) + 'm', false);
+  }
+
+  // Cache the drawn profile so the hover tooltip can read exact values
+  navGraphData = { distances, zData, slopeData, zMin, zMax, x0, x1, y0, y1 };
 
   drawNavCursor();
+}
+
+/* ------------------------------------------------------------------ */
+/* Elevation graph hover tooltip                                       */
+/* ------------------------------------------------------------------ */
+function showNavTooltip(e) {
+  const tip = document.getElementById('tooltip');
+  if (!tip) return;
+  if (!navGraphData) { hideNavTooltip(); return; }
+  const g = navGraphData;
+  const rect = navCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  if (mx < g.x0 || mx > g.x1) { hideNavTooltip(); return; }
+  const t = (mx - g.x0) / (g.x1 - g.x0);
+  const idx = Math.max(0, Math.min(g.zData.length - 1, Math.round(t * (g.zData.length - 1))));
+  const d = g.distances[idx];
+  const z = g.zData[idx];
+  const slope = g.slopeData[idx] || 0;
+  tip.textContent =
+    tr('Distance') + ': ' + d.toFixed(1) + 'm\n' +
+    tr('Elevation') + ': ' + z.toFixed(1) + 'm\n' +
+    tr('Slope') + ': ' + (slope >= 0 ? '+' : '') + (slope * 100).toFixed(1) + '%';
+  tip.classList.remove('hidden');
+  tip.style.left = Math.min(window.innerWidth - 170, e.clientX + 14) + 'px';
+  tip.style.top = Math.max(8, e.clientY - 62) + 'px';
+}
+
+function hideNavTooltip() {
+  const tip = document.getElementById('tooltip');
+  if (tip) tip.classList.add('hidden');
 }
 
 function navLeftClick(e) {
@@ -814,7 +855,9 @@ function bindCanvasEvents() {
   navCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
   navCanvas.addEventListener('mousemove', (e) => {
     if (e.buttons === 1) navLeftClick(e);
+    else showNavTooltip(e);
   });
+  navCanvas.addEventListener('mouseleave', hideNavTooltip);
 }
 
 function bindKeyboard() {

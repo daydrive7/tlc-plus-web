@@ -782,7 +782,9 @@ function runImageTrace() {
 const sliderElements = [];
 
 function initSidebar() {
-  // Sliders
+  initCollapsibleSections();
+
+  // Sliders (range + inline numeric input)
   document.querySelectorAll('.slider-row').forEach((row) => {
     const varName = row.dataset.var;
     const input = row.querySelector('input[type="range"]');
@@ -791,19 +793,28 @@ function initSidebar() {
     const max = parseFloat(row.dataset.max);
     const res = parseFloat(row.dataset.res);
     input.min = min; input.max = max; input.step = res;
+    if (valEl && valEl.tagName === 'INPUT') {
+      valEl.min = min; valEl.max = max; valEl.step = res;
+    }
 
-    function refresh() {
+    function readVar() {
       let v = (varName === 'pitOffset2') ? S.pitOffset : S[varName];
       if (v === undefined) v = min;
-      input.value = v;
-      valEl.textContent = formatSliderValue(v, res);
+      return v;
     }
-    function apply() {
-      let v = parseFloat(input.value);
+    function refresh() {
+      const v = readVar();
+      input.value = v;
+      if (valEl && valEl.tagName === 'INPUT') valEl.value = formatSliderValue(v, res);
+      else if (valEl) valEl.textContent = formatSliderValue(v, res);
+    }
+    function applyValue(v) {
       if (isNaN(v)) v = min;
       if (varName === 'pitOffset2') S.pitOffset = v;
       else S[varName] = v;
-      valEl.textContent = formatSliderValue(v, res);
+      input.value = v;
+      if (valEl && valEl.tagName === 'INPUT') valEl.value = formatSliderValue(v, res);
+      else if (valEl) valEl.textContent = formatSliderValue(v, res);
       navTerrainCache = null;
       if (varName === 'labelFontSize') { polygonChange(); trackChange(); }
       else if (varName === 'heightMapFidelity') canvasChange();
@@ -811,7 +822,25 @@ function initSidebar() {
       else if (varName === 'referenceScale') canvasChange();
       else displayChange();
     }
+    function apply() { applyValue(parseFloat(input.value)); }
+
     input.addEventListener('input', apply);
+
+    // Typed numeric entry: clamp to range and snap to the slider step
+    if (valEl && valEl.tagName === 'INPUT') {
+      valEl.addEventListener('change', () => {
+        let v = parseFloat(valEl.value);
+        if (isNaN(v)) v = readVar();
+        v = Math.max(min, Math.min(max, v));
+        v = Math.round(v / res) * res;
+        v = parseFloat(v.toFixed(4));
+        applyValue(v);
+      });
+      valEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') valEl.blur();
+      });
+    }
+
     sliderElements.push({ name: varName, refresh: refresh });
     refresh();
     if (row.dataset.tip) row.dataset.tip = row.dataset.tip;
@@ -947,6 +976,83 @@ function syncSidebarControls() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Collapsible sidebar sections                                        */
+/* ------------------------------------------------------------------ */
+function initCollapsibleSections() {
+  document.querySelectorAll('.sidebar-tab').forEach((tab) => {
+    let current = null; // tracks where subsequent rows get appended
+    Array.from(tab.children).forEach((child) => {
+      if (child.classList && child.classList.contains('sec-label')) {
+        // Start a new section group; the original label element is kept
+        // (so translation + dataset.origText survive) and gets a toggle.
+        // NOTE: the group must be captured per-section (const) — closures
+        // over a shared loop variable would all toggle the last group.
+        const sectionGroup = document.createElement('div');
+        sectionGroup.className = 'sec-group';
+        const head = document.createElement('div');
+        head.className = 'sec-head';
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-expanded', 'true');
+        head.title = tr('Click to collapse / expand section');
+        child.replaceWith(sectionGroup);
+        head.appendChild(child);
+        const toggle = document.createElement('span');
+        toggle.className = 'sec-toggle';
+        toggle.setAttribute('aria-hidden', 'true');
+        toggle.textContent = '\u25BE';
+        head.appendChild(toggle);
+        sectionGroup.appendChild(head);
+        const toggleSection = () => {
+          const collapsed = sectionGroup.classList.toggle('collapsed');
+          head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        };
+        head.addEventListener('click', toggleSection);
+        head.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(); }
+        });
+        current = sectionGroup;
+      } else if (current) {
+        // Everything up to the next section label belongs to this group
+        current.appendChild(child);
+      }
+    });
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Elevation graph expand / restore                                    */
+/* ------------------------------------------------------------------ */
+function initNavExpand() {
+  const btn = document.getElementById('nav-expand-btn');
+  const navArea = document.getElementById('nav-area');
+  if (!btn || !navArea) return;
+  let prevH = null;
+
+  function setHeight(h) {
+    navArea.style.flexBasis = h + 'px';
+    navArea.style.height = h + 'px';
+    sizeCanvases();
+    displayChange();
+    saveConfig();
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const curH = navArea.getBoundingClientRect().height;
+    const expanded = navArea.classList.toggle('expanded');
+    if (expanded) {
+      prevH = curH;
+      btn.title = tr('Restore elevation graph size');
+      setHeight(Math.round(window.innerHeight * 0.6));
+    } else {
+      btn.title = tr('Expand elevation graph');
+      setHeight(prevH && prevH > 40 ? prevH : 160);
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Elevation splitter drag                                            */
 /* ------------------------------------------------------------------ */
 function initSplitter() {
@@ -1008,6 +1114,7 @@ function initApp() {
   initSidebar();
   initMenus();
   initSplitter();
+  initNavExpand();
   initTooltips();
   initWarningFlasher();
   bindCanvasEvents();

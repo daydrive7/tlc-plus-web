@@ -218,9 +218,6 @@
       <div id="nav-area">
         <canvas id="nav-ruler" class="nav-ruler" width="36"></canvas>
         <canvas id="nav-canvas"></canvas>
-        <button id="nav-expand-btn" title="Expand elevation graph" aria-label="Expand elevation graph">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-        </button>
       </div>
     </div>
   </div>
@@ -231,6 +228,9 @@
 
 <!-- Modal layer -->
 <div id="modal-layer"></div>
+
+<!-- Mobile sidebar backdrop (tap to close the drawer) -->
+<div id="sidebar-backdrop" class="hidden"></div>
 
 <!-- Hidden file inputs -->
 <input type="file" id="file-input" class="hidden">

@@ -71,4 +71,30 @@ run(`const unknown={header:{sceneryindex:[0,0,0,5]},decorations:[{uuid:184467440
 run(`const iso=Object.create(IsoView.prototype);Object.assign(iso,{rotation:0,scale:1,center:[0,0],zScale:4,zmin:0,elevation:Math.PI/6});
  const a=iso.proj([20,10,5]);iso.elevation=85*Math.PI/180;const b=iso.proj([20,10,5]);
  if(a[0]!==b[0]||b.some(v=>!Number.isFinite(v)))throw new Error('Invalid tilt projection');`);
+// A known planar heightmap lets us verify every contour's position, not just
+// whether something was drawn. Include formerly blank sampling edge cases.
+run(`const slope=new HeightMap(2,2,[0,100],[0,100],new Float32Array([0,1,0,1]),1000);
+ for(const [size,range] of [[50,[-500,-499.5,500,-499]],[1,[-500,-500,500,500]],[50,[0,0,112,123]]]){
+  let samples=0;const sample=slope.coordToFraction.bind(slope);
+  slope.coordToFraction=(...args)=>{samples++;return sample(...args);};
+  const [lines]=contours(slope,size,range,5);
+  if(!lines||!Object.keys(lines).length)throw new Error('Terrain disappeared for '+range);
+  if(samples>41000)throw new Error('Contour sampling exceeded its budget');
+  for(const [level,polys] of Object.entries(lines))for(const poly of polys){
+   const ends=[poly[0][1],poly[poly.length-1][1]].sort((a,b)=>a-b);
+   if(Math.abs(ends[0]-range[1])>1e-6||Math.abs(ends[1]-range[3])>1e-6)throw new Error('Contour missed viewport edge');
+   for(const [x,y] of poly)if(Math.abs(sample(x,y,'m',true)-Number(level))>1e-6)throw new Error('Contour elevation is inaccurate');
+  }
+  slope.coordToFraction=sample;
+ }
+ const closeRange=[-389,0,-387,5];
+ const fixed=contours(slope,50,closeRange,5,false);
+ const refined=contours(slope,50,closeRange,5,true);
+ if(Object.keys(fixed[0]).length||!Object.keys(refined[0]).length||refined[3]>=5)throw new Error('Zoomed shallow slope was not refined');
+ for(const [level,polys] of Object.entries(refined[0]))for(const poly of polys)for(const [x,y] of poly){
+  if(Math.abs(slope.coordToFraction(x,y,'m',true)-Number(level))>1e-6)throw new Error('Refined contour elevation is inaccurate');
+ }
+ const flat=new HeightMap(2,2,[0,100],[0,100],new Float32Array(4).fill(0.42),1000);
+ if(Object.keys(contours(flat,50,[-50,-50,50,50],5,true)[0]).length)throw new Error('Invented contours on flat terrain');`);
+console.log('PASS: accurate contours on narrow strips, full viewport edges, sampling-budget overflow, zoomed shallow slopes and flat terrain.');
 console.log(`PASS: ${entries} desktop decoration records, ${fixtures.gps.length} GPS fixtures, ${fixtures.geometry.length} geometry/banking cases, all terrain payloads, TED/cliff round trips, project/TRK5 persistence, unknown UUIDs and tilt.`);

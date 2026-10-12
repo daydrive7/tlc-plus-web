@@ -22,6 +22,14 @@ let server,browser;
  watch(page);await page.goto(base+'/');await page.waitForFunction(()=>S.heightMap&&document.getElementById('app').classList.contains('hidden')===false);await page.waitForTimeout(800);
  await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
  await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
+ async function checkPalette(p){
+  const cells=await p.locator('#deco-palette button').evaluateAll(buttons=>buttons.map(b=>{
+   const box=b.getBoundingClientRect(),icon=b.querySelector('img').getBoundingClientRect();
+   return {w:box.width,h:box.height,iw:icon.width,ih:icon.height,text:b.textContent.trim()};
+  }));
+  assert.ok(cells.length>0);for(const c of cells)assert.deepEqual(c,{w:54,h:54,iw:44,ih:44,text:''},'Palette must fit its icons');
+ }
+ await checkPalette(page);
  const n=await page.evaluate(()=>decorations.length);assert.ok(n>0);
  await page.waitForFunction(()=>[...decorationIconCache.values()].every(i=>i.complete&&i.naturalWidth>0));
  await page.screenshot({path:path.join(results,'desktop-decoration-icons.png')});
@@ -48,7 +56,7 @@ let server,browser;
  const tedDownload=page.waitForEvent('download');await page.evaluate(()=>exportTEDFile());await(await tedDownload).saveAs(path.join(results,'stage.ted'));assert.ok(fs.statSync(path.join(results,'stage.ted')).size>156);
  for(const lang of ['en','pl','es','pt-br','pt-pt','fr','de','ja','ru'])await page.evaluate(lang=>setLanguage(lang),lang);
  await page.evaluate(()=>setLanguage('en'));
- const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});watch(mobile);await mobile.goto(base+'/');await mobile.waitForFunction(()=>!!S.heightMap);await mobile.waitForTimeout(800);
+ const mobile=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});watch(mobile);await mobile.goto(base+'/');await mobile.waitForFunction(()=>!!S.heightMap);await mobile.waitForTimeout(800);
  assert.equal(await mobile.evaluate(()=>S.optimizeInteraction),false,'PDM must start disabled');
  const touch=await mobile.context().newCDPSession(mobile);
  async function event(type,points){await touch.send('Input.dispatchTouchEvent',{type,touchPoints:points.map((p,i)=>({x:p[0],y:p[1],id:i+1,radiusX:8,radiusY:8,force:1}))});}
@@ -84,6 +92,25 @@ let server,browser;
    scrolling=true;interacting=true;drawCanvas();mainCtx.stroke=stroke;scrolling=false;interacting=false;
    return count;
  });assert.ok(contoursVisible>0,'Heightmap vanished while navigating with PDM off');
+ // Resize and sweep the entire supported zoom range on real desktop terrain.
+ // Count only the heightmap's strokes, with the grid/reference path disabled.
+ const originalViewport=mobile.viewportSize();
+ for(const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1366,height:768},{width:2560,height:1440}]){
+  await mobile.setViewportSize(viewport);
+  const canvasBox=await mobile.locator('#main-canvas').boundingBox();
+  assert.ok(canvasBox.height<viewport.height&&canvasBox.width<viewport.width,'Canvas grew beyond the viewport after resize');
+  const navBox=await mobile.locator('#nav-canvas').boundingBox();
+  assert.ok(navBox.width<viewport.width,'Elevation graph grew beyond the viewport after resize');
+  for(const z of [0.0625,0.25,1,4,16]){
+   const count=await mobile.evaluate(z=>{
+    zoom=z;S.displayGrid=false;S.displayReferencePath=false;centerOnCoord([0,0]);sizeCanvases();
+    const stroke=mainCtx.stroke;let count=0;mainCtx.stroke=function(...args){count++;return stroke.apply(this,args);};
+    try{drawCanvas();}finally{mainCtx.stroke=stroke;}return count;
+   },z);
+   assert.ok(count>0,`Heightmap disappeared at ${viewport.width}x${viewport.height}, zoom ${z}`);
+  }
+ }
+ await mobile.setViewportSize(originalViewport);await mobile.click('[data-mobile="fit"]');
  await mobile.evaluate(()=>drawIsoMap());const isoRect=await mobile.locator('.iso-canvas').boundingBox();
  const oldTilt=await mobile.evaluate(()=>currentIsoView.elevation);
  await dragPoint([isoRect.x+130,isoRect.y+160],[isoRect.x+160,isoRect.y+195]);assert.ok(await mobile.evaluate(()=>currentIsoView.elevation)>oldTilt,'Touch tilt failed');
@@ -92,6 +119,7 @@ let server,browser;
  assert.ok(await mobile.evaluate(()=>currentIsoView.scale)>oldScale,'Touch 3D pinch failed');await mobile.click('.iso-close');
  await mobile.click('#btn-toggle-sidebar');await mobile.click('[data-tab="decorations"]');
  await mobile.waitForFunction(()=>[...document.querySelectorAll('#deco-palette img')].every(i=>i.complete&&i.naturalWidth>0));
+ await checkPalette(mobile);
  await mobile.screenshot({path:path.join(results,'mobile.png')});
  await mobile.click('#deco-palette button[data-type="1"]');await mobile.locator('#sidebar-backdrop').click({position:{x:mobile.viewportSize().width-5,y:100}});await mobile.click('[data-mobile="fit"]');
  const area=await mobile.locator('#main-canvas').boundingBox();await tapPoint([area.x+area.width*0.7,area.y+area.height*0.4]);
@@ -105,6 +133,7 @@ let server,browser;
  await mobile.click('#btn-toggle-sidebar');
  await mobile.setViewportSize({width:844,height:390});
  assert.equal(await mobile.locator('#left-panel').isVisible(),true,'Orientation dismissed the drawer');
+ await checkPalette(mobile);
  await mobile.locator('#sidebar-backdrop').click({position:{x:mobile.viewportSize().width-5,y:100}});
  assert.equal(await mobile.locator('#mobile-actions').isVisible(),true,'Landscape lost touch actions');
  await mobile.click('[data-mobile="fit"]');
@@ -114,6 +143,6 @@ let server,browser;
  assert.equal(await mobile.evaluate(()=>JSON.parse(localStorage.getItem('tlcp_config')).optimize_interaction),true,'PDM opt-in was not saved');
  await pdm.uncheck();await mobile.reload();await mobile.waitForFunction(()=>!!S.heightMap);assert.equal(await mobile.evaluate(()=>S.optimizeInteraction),false,'PDM opt-out did not persist');
  const local=await browser.newPage();watch(local);await local.goto(pathToFileURL(path.join(root,'index.html')).href);await local.waitForFunction(()=>!!S.heightMap);assert.equal(await local.evaluate(()=>!!S.heightMap),true);
- console.log('PASS: desktop workflows, icon loading, multi-touch editing/selection/decorations, non-destructive pinch/pan, illustrated mobile guide, 3D gestures, portrait/landscape, PDM persistence and heightmap visibility, 9 languages and file://.');
+ console.log('PASS: desktop workflows, compact icon palette, multi-touch editing/selection/decorations, non-destructive pinch/pan, illustrated mobile guide, 3D gestures, portrait/landscape, 3x pixel density, 25 viewport/zoom heightmap cases, PDM persistence, 9 languages and file://.');
  console.log('Browser errors:',errors);assert.deepEqual(errors,[]);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));});

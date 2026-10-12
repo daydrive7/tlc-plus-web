@@ -165,6 +165,12 @@ for regeneration with the extracted release and its Python dependencies.
 | Ctrl+Z / Ctrl+Y | Undo / redo |
 | Ctrl+S / Ctrl+O | Save / load track |
 
+The decoration palette uses 54px squares around 44px desktop icons, with no visible names.
+
+Terrain contours cover the full viewport at every zoom. On shallow slopes, zooming
+in adds finer elevation lines with accurate labels; flat areas remain flat. Sampling
+adapts to its cell budget, and canvas layout stays within the screen after resizing.
+
 ## Development
 
 Plain classic scripts (no bundler). Load order is defined at the bottom of
@@ -193,7 +199,7 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-- **TLC+ Web v1.3.2** (this port) is derived from that MIT-licensed source
+- **TLC+ Web v1.3.3** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
 Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony

@@ -152,7 +152,7 @@ function base64ToUint8(b64) {
 /* ------------------------------------------------------------------ */
 let _contourCache = { key: null, value: null };
 
-function contours(heightMap, size, _range, step) {
+function contours(heightMap, size, _range, step, adaptiveLevels = false) {
   _range = _range || [-500, -500, 500, 500];
   const hm = heightMap;
   const limit = hm.mapSize / 2;
@@ -162,7 +162,7 @@ function contours(heightMap, size, _range, step) {
   const xMax = Math.max(-limit, Math.min(limit, _range[2]));
   const yMax = Math.max(-limit, Math.min(limit, _range[3]));
 
-  const cacheKey = [hm.id, size, step,
+  const cacheKey = [hm.id, size, step, adaptiveLevels,
     xMin.toFixed(6), yMin.toFixed(6), xMax.toFixed(6), yMax.toFixed(6)].join('|');
   if (_contourCache.key === cacheKey) return _contourCache.value;
 
@@ -170,19 +170,27 @@ function contours(heightMap, size, _range, step) {
   const rowLen = yMax - yMin;
   if (colLen <= 0 || rowLen <= 0) return [null, 0, 0];
 
-  const cols = Math.floor(colLen / size);
-  const rows = Math.floor(rowLen / size);
-  if (cols === 0 || rows === 0) return [null, 0, 0];
-  if (cols * rows > 40000) return [null, 0, 0]; // safety cap
+  if (!Number.isFinite(size) || size <= 0) return [null, 0, 0];
+  // Cover the entire visible region, including narrow strips at map edges.
+  // Reduce sampling density when necessary instead of dropping the terrain.
+  const maxCells = 40000;
+  let cols = Math.min(maxCells, Math.max(1, Math.ceil(colLen / size)));
+  let rows = Math.min(maxCells, Math.max(1, Math.ceil(rowLen / size)));
+  if (cols * rows > maxCells) {
+    const scale = Math.sqrt(cols * rows / maxCells);
+    cols = Math.max(1, Math.floor(cols / scale));
+    rows = Math.max(1, Math.floor(rows / scale));
+  }
+  const dx = colLen / cols, dy = rowLen / rows;
 
   // Batch-sample the grid
   const gridVals = [];
   let globalZmin = Infinity, globalZmax = -Infinity;
   for (let r = 0; r <= rows; r++) {
-    const currY = yMin + r * size;
+    const currY = yMin + r * dy;
     const rowVals = new Float64Array(cols + 1);
     for (let c = 0; c <= cols; c++) {
-      const z = hm.coordToFraction(xMin + c * size, currY, 'm', true);
+      const z = hm.coordToFraction(xMin + c * dx, currY, 'm', true);
       if (z < globalZmin) globalZmin = z;
       if (z > globalZmax) globalZmax = z;
       rowVals[c] = z;
@@ -191,17 +199,21 @@ function contours(heightMap, size, _range, step) {
   }
 
   // Determine iso-levels
-  let levels;
-  if (step === undefined || step === null) {
-    levels = subdivideDistance(globalZmin, globalZmax, 10).points;
-  } else {
-    levels = subdivideDistance(globalZmin, globalZmax, null, step).points;
-  }
+  // Zooming into a shallow slope can put the whole viewport between two
+  // selected contour elevations. Use finer, accurately labelled levels in
+  // the editor in that case; genuinely flat terrain still has no contours.
+  const zRange = globalZmax - globalZmin;
+  const refineLevels = adaptiveLevels && zRange > 1e-5 && zRange < step * 2;
+  const subdivision = step === undefined || step === null || refineLevels
+    ? subdivideDistance(globalZmin, globalZmax, refineLevels ? 4 : 10)
+    : subdivideDistance(globalZmin, globalZmax, null, step);
+  const levels = subdivision.points;
+  const levelStep = subdivision.step;
 
   const cellXs = new Float64Array(cols + 1);
   const cellYs = new Float64Array(rows + 1);
-  for (let c = 0; c <= cols; c++) cellXs[c] = xMin + c * size;
-  for (let r = 0; r <= rows; r++) cellYs[r] = yMin + r * size;
+  for (let c = 0; c <= cols; c++) cellXs[c] = xMin + c * dx;
+  for (let r = 0; r <= rows; r++) cellYs[r] = yMin + r * dy;
 
   function interpolateEdge(valA, valB, threshold, originVal, cellSize) {
     const diff = valB - valA;
@@ -212,10 +224,10 @@ function contours(heightMap, size, _range, step) {
   }
 
   function makeEdgePoint(edgeId, cellX, cellXEnd, cellY, cellYEnd, valTl, valTr, valBr, valBl, level) {
-    if (edgeId === 0) return [interpolateEdge(valTl, valTr, level, cellX, size), cellY];
-    if (edgeId === 1) return [cellXEnd, interpolateEdge(valTr, valBr, level, cellY, size)];
-    if (edgeId === 2) return [interpolateEdge(valBl, valBr, level, cellX, size), cellYEnd];
-    return [cellX, interpolateEdge(valTl, valBl, level, cellY, size)];
+    if (edgeId === 0) return [interpolateEdge(valTl, valTr, level, cellX, dx), cellY];
+    if (edgeId === 1) return [cellXEnd, interpolateEdge(valTr, valBr, level, cellY, dy)];
+    if (edgeId === 2) return [interpolateEdge(valBl, valBr, level, cellX, dx), cellYEnd];
+    return [cellX, interpolateEdge(valTl, valBl, level, cellY, dy)];
   }
 
   const lineDict = {};
@@ -254,7 +266,7 @@ function contours(heightMap, size, _range, step) {
   }
 
   _contourCache.key = cacheKey;
-  _contourCache.value = [lineDict, globalZmin, globalZmax];
+  _contourCache.value = [lineDict, globalZmin, globalZmax, levelStep];
   return _contourCache.value;
 }
 

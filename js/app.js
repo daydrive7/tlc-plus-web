@@ -449,7 +449,7 @@ function drawCanvas() {
 
   // contours are skipped during scroll only in PDM draft mode
   if (S.displayHeightmap && !(scrolling && S.optimizeInteraction)) {
-    drawContourLines(Math.floor(step));
+    drawContourLines(step);
   }
   if (S.displayReferencePath && referencePath.length > 0) {
     drawReferencePath();
@@ -552,9 +552,10 @@ function drawContourLines(cellSize) {
   const rect = mainCanvas.getBoundingClientRect();
   const topleft = [canvasX(0) / zoom, canvasY(0) / zoom];
   const bottomright = [canvasX(rect.width) / zoom, canvasY(rect.height) / zoom];
-  const result = contours(S.heightMap, cellSize, [topleft[0], topleft[1], bottomright[0], bottomright[1]], step);
+  const result = contours(S.heightMap, cellSize, [topleft[0], topleft[1], bottomright[0], bottomright[1]], step, !(interacting && S.optimizeInteraction));
   if (!result || !result[0]) return;
-  const [lineDict, zmin, zmax] = result;
+  const [lineDict, zmin, zmax, levelStep] = result;
+  step = levelStep;
 
   const zrange = (zmax - zmin) || 1;
   const boxWidth = 15, boxHeight = 5;

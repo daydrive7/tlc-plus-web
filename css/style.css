@@ -51,6 +51,20 @@ html, body {
 
 .hidden { display: none !important; }
 
+:root[data-theme="Classic"] {
+  --white: #202020; --lighter-silver: #BBBBBB; --light-silver: #D0D0D0;
+  --silver: #EEEEEE; --dark-silver: #F5F5F5; --darker-silver: #FFFFFF;
+  --grey: #666666; --dark-grey: #DDDDDD; --grid-color: #DDDDDD;
+  --grid-label: #666666; --track-track: #444444; --track-border: #858585;
+}
+:root[data-theme="Classic"] #splash { background: #FFFFFF; }
+#deco-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 8px; }
+#deco-palette .styled-btn { margin: 0; font-size: 11px; white-space: normal; }
+#deco-palette .active { border-color: var(--accent); background: var(--accent-dark); color: #FFFFFF; }
+.deco-options { display: flex; gap: 12px; padding: 8px; }
+.deco-options select, #deco-interval { background: var(--silver); color: var(--white); border: 1px solid var(--light-silver); padding: 5px; }
+#deco-interval { width: 85px; }
+
 button { font-family: inherit; }
 
 /* ============ Splash ============ */

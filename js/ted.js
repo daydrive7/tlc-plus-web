@@ -237,9 +237,9 @@ class TEDTrackObject {
     for (let i = 0; i < count; i++) {
       const p = offset + i * 24;
       out.push({
-        m_arr_Cliff: dv.getBigUint64(p), railtype: dv.getInt32(p + 8),
+        uuid: dv.getBigUint64(p), rotation: dv.getUint32(p + 8),
         vposIncludeHeight: dv.getFloat32(p + 12), vposIncludeHeight2: dv.getFloat32(p + 16),
-        tracktype: dv.getInt32(p + 20),
+        tracktype: dv.getUint32(p + 20),
       });
     }
     return out;
@@ -458,11 +458,11 @@ function generateTedFile(track) {
     pos += 20;
   }
   for (const dec of track.decorations) {
-    dv.setBigUint64(pos, BigInt(dec.m_arr_Cliff));
-    dv.setInt32(pos + 8, dec.railtype);
+    dv.setBigUint64(pos, BigInt(dec.uuid));
+    dv.setUint32(pos + 8, dec.rotation || 0);
     dv.setFloat32(pos + 12, dec.vposIncludeHeight);
     dv.setFloat32(pos + 16, dec.vposIncludeHeight2);
-    dv.setInt32(pos + 20, dec.tracktype);
+    dv.setUint32(pos + 20, dec.tracktype);
     pos += 24;
   }
   return buf;
@@ -672,9 +672,9 @@ function pointToCartesian(center, point) {
 
 function projectPath(path) {
   if (!path.length) return [];
-  const lats = path.map(p => p[0]), lons = path.map(p => p[1]);
-  const center = [Math.min(...lats) + (Math.max(...lats) - Math.min(...lats)) / 2,
-                  Math.min(...lons) + (Math.max(...lons) - Math.min(...lons)) / 2];
+  let minLat=Infinity,maxLat=-Infinity,minLon=Infinity,maxLon=-Infinity;
+  for (const [lat,lon] of path) { minLat=Math.min(minLat,lat);maxLat=Math.max(maxLat,lat);minLon=Math.min(minLon,lon);maxLon=Math.max(maxLon,lon); }
+  const center = [(minLat+maxLat)/2,(minLon+maxLon)/2];
   return path.map(p => pointToCartesian(center, p));
 }
 
@@ -685,7 +685,7 @@ function parseGPX(text) {
   const elements = doc.getElementsByTagName('*');
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];
-    if (el.tagName.endsWith('trkpt') && el.hasAttribute('lat') && el.hasAttribute('lon')) {
+    if ((el.localName === 'trkpt' || el.localName === 'rtept') && el.hasAttribute('lat') && el.hasAttribute('lon')) {
       pts.push([parseFloat(el.getAttribute('lat')), parseFloat(el.getAttribute('lon'))]);
     }
   }

@@ -1,0 +1,54 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {chromium}=require('playwright');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const http=require('node:http');
+const root=path.join(__dirname,'..');
+const results=path.join(root,'test-results');fs.mkdirSync(results,{recursive:true});
+let server,browser;
+(async()=>{
+ server=http.createServer((req,res)=>{
+  const file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
+  if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
+  const target=file===root?path.join(root,'index.html'):file;
+  fs.readFile(target,(err,data)=>{if(err){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',({'.js':'text/javascript','.css':'text/css','.html':'text/html'})[path.extname(target)]||'application/octet-stream');res.end(data);});
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const base='http://127.0.0.1:'+server.address().port;
+ browser=await chromium.launch({channel:process.env.TLC_BROWSER_CHANNEL||'chromium',headless:true});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+ function watch(p){p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'||m.type()==='warning')errors.push(m.text());});}
+ watch(page);await page.goto(base+'/');await page.waitForFunction(()=>S.heightMap&&document.getElementById('app').classList.contains('hidden')===false);await page.waitForTimeout(800);
+ await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
+ await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
+ const n=await page.evaluate(()=>decorations.length);assert.ok(n>0);
+ const pos=await page.evaluate(()=>{const p=decorationScreenPosition(decorations[4]),r=mainCanvas.getBoundingClientRect();return {x:p[0]+r.left,y:p[1]+r.top};});
+ await page.mouse.move(pos.x,pos.y);await page.mouse.down();await page.mouse.move(pos.x+50,pos.y+15,{steps:6});await page.mouse.up();
+ await page.keyboard.press('f');assert.equal(await page.evaluate(()=>decorations[4].side),'right');
+ await page.keyboard.press('Control+z');assert.equal(await page.evaluate(()=>decorations[4].side),'left');await page.keyboard.press('Control+y');
+ await page.evaluate(()=>{vaultWrite({test:{data:bytesToBase64(makeWebProject(S,polygon,decorations)),savedAt:new Date().toISOString()}});decorations=[];vaultLoadTrack('test');});
+ await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>decorations.length),n);
+ const download=page.waitForEvent('download');await page.evaluate(()=>saveTrackFile());await (await download).saveAs(path.join(results,'saved-project.tlcw'));
+ await page.evaluate(()=>{void switchScenery(1);});await page.locator('.modal-footer button').last().click();assert.equal(await page.evaluate(()=>S.sceneryindex),5);
+ await page.evaluate(()=>{void switchScenery(1);});await page.locator('.modal-footer button').first().click();await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>decorations.length),0);
+ const chooser=page.waitForEvent('filechooser');await page.evaluate(()=>loadTrackFile());await (await chooser).setFiles(path.join(results,'saved-project.tlcw'));await page.waitForTimeout(200);
+ assert.equal(await page.evaluate(()=>decorations.length),n);assert.equal(await page.evaluate(()=>S.sceneryindex),5);
+ await page.evaluate(()=>preferencesWindow());await page.getByText('Classic (light) theme',{exact:true}).click();await page.getByText('Show Elevation',{exact:true}).click();await page.getByText('Show TLC+ title',{exact:true}).click();await page.locator('.modal-close').click();
+ assert.equal(await page.locator('#nav-area').isVisible(),false);assert.equal(await page.locator('.tb-title').isVisible(),false);
+ await page.evaluate(()=>drawIsoMap());await page.waitForTimeout(100);const iso=await page.locator('.iso-canvas').boundingBox();
+ await page.mouse.move(iso.x+200,iso.y+200);await page.mouse.down();await page.mouse.move(iso.x+250,iso.y+250,{steps:8});await page.mouse.up();assert.ok(await page.evaluate(()=>currentIsoView.elevation>Math.PI/6));
+ await page.screenshot({path:path.join(results,'light-iso.png')});await page.click('.iso-close');
+ await page.click('[data-tab="generators"]');
+ const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/desktop-v1.3.0.json'))).gps.find(c=>c.name==='stage'&&c.accuracy===50);
+ const gpsChooser=page.waitForEvent('filechooser');await page.click('#btn-trace-gps');await (await gpsChooser).setFiles({name:'stage.csv',mimeType:'text/csv',buffer:Buffer.from('lat,lon\n'+fixture.latlon.map(p=>p.join(',')).join('\n'))});
+ await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>S.circuit),false);assert.equal(await page.evaluate(()=>polygon.length),fixture.polygon.length);
+ const tedDownload=page.waitForEvent('download');await page.evaluate(()=>exportTEDFile());await(await tedDownload).saveAs(path.join(results,'stage.ted'));assert.ok(fs.statSync(path.join(results,'stage.ted')).size>156);
+ for(const lang of ['en','pl','es','pt-br','pt-pt','fr','de','ja','ru'])await page.evaluate(lang=>setLanguage(lang),lang);
+ await page.evaluate(()=>setLanguage('en'));
+ const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});watch(mobile);await mobile.goto(base+'/');await mobile.waitForFunction(()=>!!S.heightMap);await mobile.waitForTimeout(800);
+ await mobile.click('#btn-toggle-sidebar');await mobile.click('[data-tab="decorations"]');await mobile.screenshot({path:path.join(results,'mobile.png')});
+ const local=await browser.newPage();watch(local);await local.goto(pathToFileURL(path.join(root,'index.html')).href);await local.waitForFunction(()=>!!S.heightMap);assert.equal(await local.evaluate(()=>!!S.heightMap),true);
+ console.log('PASS: placement/drag/flip/undo/redo, project file save/load, scenery confirmation, light theme, display toggles, camera tilt, GPS upload, TED download, 9 languages, mobile and file://.');
+ console.log('Browser errors:',errors);assert.deepEqual(errors,[]);
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));});

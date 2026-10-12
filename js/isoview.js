@@ -25,6 +25,7 @@ class IsoView {
     this.cornerPoints = [];
     this.scale = 1;
     this.rotation = 0;
+    this.elevation = Math.PI / 6;
     this.zScale = 4;
     this.displayGrid = true;
     this.displayContours = true;
@@ -43,7 +44,7 @@ class IsoView {
       '<div class="iso-window">' +
       '  <div class="iso-header">' +
       '    <span class="iso-title">' + (window.tr ? tr('Isometric view') : 'Isometric view') + '</span>' +
-      '    <span class="iso-hint">' + (window.tr ? tr('Drag = rotate | Right-drag = pan | Wheel = zoom | R = reset | P = save PNG') : '') + '</span>' +
+      '    <span class="iso-hint">' + (window.tr ? tr('Drag = rotate / tilt | Right-drag = pan | Wheel = zoom | R = reset | P = save PNG') : '') + '</span>' +
       '    <button class="iso-close" title="' + (window.tr ? tr('Close') : 'Close') + '">&times;</button>' +
       '  </div>' +
       '  <div class="iso-toolbar">' +
@@ -73,6 +74,7 @@ class IsoView {
     overlay.querySelector('[data-iso-zoom="out"]').addEventListener('click', () => this.zoom('out'));
     overlay.querySelector('[data-iso-shot]').addEventListener('click', () => this.exportPNG());
 
+    this.canvas.addEventListener('contextmenu', e => e.preventDefault());
     this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
     window.addEventListener('mousemove', this._moveHandler = (e) => this.onMouseMove(e));
     window.addEventListener('mouseup', this._upHandler = (e) => this.onMouseUp(e));
@@ -216,7 +218,7 @@ class IsoView {
     const ty = (y - cy) * scale;
     const rx = tx * cosR + ty * sinR;
     const ry = -tx * sinR + ty * cosR;
-    return [(rx - ry) * nHalf, (rx + ry) * 0.5 - (z - zmin) * zscale];
+    return [(rx - ry) * nHalf, (rx + ry) * Math.sin(this.elevation) - (z - zmin) * zscale * Math.cos(this.elevation) / nHalf];
   }
 
   projFlat(x, y) {
@@ -229,11 +231,12 @@ class IsoView {
     const ty = (y - cy) * scale;
     const rx = tx * cosR + ty * sinR;
     const ry = -tx * sinR + ty * cosR;
-    return [(rx - ry) * nHalf, (rx + ry) * 0.5];
+    return [(rx - ry) * nHalf, (rx + ry) * Math.sin(this.elevation)];
   }
 
   resetView() {
     this.rotation = 0;
+    this.elevation = Math.PI / 6;
     this.drawBasic();
     this.projectAndDraw();
   }
@@ -265,6 +268,7 @@ class IsoView {
     } else {
       const deltaX = e.clientX - this.mouseLoc.x;
       this.rotation += deltaX * 0.005;
+      this.elevation = Math.max(Math.PI/36, Math.min(17*Math.PI/36, this.elevation + (e.clientY-this.mouseLoc.y)*0.005));
       this.mouseLoc = { x: e.clientX, y: e.clientY };
       this.drawBasic();
     }
@@ -319,9 +323,9 @@ class IsoView {
 
     const drawLines = (lines) => {
       for (let i = 0; i < lines.length; i++) {
-        let color = c.DARK_SILVER, width = 0.5;
+        let color = c.GRID_COLOR, width = 0.5;
         if (i % wideLines === 0) width = 1;
-        if (i % (2 * wideLines) === 0) color = c.DARKER_SILVER;
+        if (i % (2 * wideLines) === 0) color = c.GREY;
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
         ctx.beginPath();
@@ -374,7 +378,7 @@ class IsoView {
       const elevation = parseFloat(elevationStr);
       const zfraction = (elevation - this.contourZmin) / this.contourZrange;
       const hexColor = fractionToHex(zfraction);
-      const zOffset = (elevation - zmin) * zscale;
+      const zOffset = (elevation - zmin) * zscale * Math.cos(this.elevation) / nHalf;
 
       for (const line of this.contourDict[elevationStr]) {
         ctx.strokeStyle = hexColor;
@@ -387,7 +391,7 @@ class IsoView {
           const ty = (p[1] - cy) * this.scale;
           const rx = tx * cosR + ty * sinR;
           const ry = -tx * sinR + ty * cosR;
-          pts.push([(rx - ry) * nHalf, (rx + ry) * 0.5 - zOffset]);
+          pts.push([(rx - ry) * nHalf, (rx + ry) * Math.sin(this.elevation) - zOffset]);
         }
         traceSmoothPath(ctx, pts);  // original: create_line(smooth=1)
         ctx.stroke();

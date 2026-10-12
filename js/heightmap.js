@@ -83,6 +83,7 @@ const HM_MAPS = {
   1: { file: 'death_valley', mapSize: 6000 },
   2: { file: 'eifel', mapSize: 12000 },
   3: { file: 'andalusia', mapSize: 7000 },
+  4: { file: 'eifel', mapSize: 12000 },
   5: { file: 'eifel_flat', mapSize: 12000 },
 };
 

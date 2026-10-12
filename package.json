@@ -1,0 +1,12 @@
+{
+  "name": "tlc-plus-web",
+  "private": true,
+  "version": "1.3.0",
+  "scripts": {
+    "test": "node tests/parity.test.cjs",
+    "test:browser": "node tests/browser.test.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}

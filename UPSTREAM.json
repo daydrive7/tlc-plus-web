@@ -1,0 +1,29 @@
+{
+  "desktopVersion": "v1.3.0",
+  "releaseUrl": "https://github.com/daydrive7/track-layout-creator-plus/releases/tag/v1.3.0",
+  "assetName": "Track.Layout.Creator.+.7z",
+  "assetSha256": "b662d4b20f0ca829fe23b3dc1feb8b3b4fd3faa658a0da2aa59901a3c45cea21",
+  "sourceFiles": {
+    "TrackLayoutCreatorPlus.py": "8ffec7fece5355db270b3d4e75d9be03c41c8532b782c09102112f774d7642d9",
+    "locales/de.json": "82572af2ebee9c6cd0536a8429856603da9038199b1c0b1a8c3fd20a87f91058",
+    "locales/en.json": "598e61c52e0c870a8abf65d2161553a639a47166e368bcf26fce14ab22690fe4",
+    "locales/es.json": "c8e9fc39a6db910cf79e01122296071ec5c8130ed343a334ba74c5b514b64ff4",
+    "locales/fr.json": "ef42db8409a6cfe9021f0f71cabd87264faf68c40a889abaa0d9c0fce3f2075f",
+    "locales/ja.json": "febf20a0afe4d5f3b6d1858dc7e81dd097fac4cc19edf477da2ef5caabed8b55",
+    "locales/pl.json": "094639f9d41e2e8216de1b77b44b6bb453a648b2e52a33b6ce2d1c334c63ed5c",
+    "locales/pt-br.json": "6744ed8f201ec499f4e71d3422a2a4ef7cb8a11e5f6ab206247cc1c1fba09657",
+    "locales/pt-pt.json": "c849dc386e58578fc1e6772eb57573f228208ef3d0a4390ea239f9fcc399713f",
+    "locales/ru.json": "96216f2cbe1d161ac98508cd04e6ddac8a59cf53039b8acd070e4b1fd10dec34",
+    "resources/decorationData.py": "096969a92de4456a85de525b3adb4477d7bf32a5f4f273ae887f45b15b4a88d7",
+    "resources/heightmap.py": "cc2691129514f8bfaf557407f898c1fca9655d1feca7863f2be7344f655b9b55",
+    "resources/imageTraceService.py": "d3a7f4402f3c9e80355f2f7def07facf2775221540019eb7d23a104b3e3823d8",
+    "resources/isometricProjection.py": "e07637c34005600c971dd5c9b90de7433a8c479bd8d8d67f36d4170c0ba7cf84",
+    "resources/layoutClasses.py": "c4ecbd20426abc91294aed2fd3a14d4715db281582dc4f1d99d3f309630f1ca9",
+    "resources/layoutConfig.py": "2e2870fed29ec0fca77657c3ae35d6c8bfe30410ed68b15d33de854aad556cb5",
+    "resources/layoutEuler.py": "31f2e7abaeaaa4aac38d67515558f711156401a56b77ccdff0cf4cefdfadadab",
+    "resources/layoutOperations.py": "513980e4a85f57c92527f5a76f2d8c2753af33b02d5720a8c5d5c07a6ed2f441",
+    "resources/pathTraceService.py": "a4ea0f6a3b50b5325f4e9c27264710ba4ed75921962b2a9628fe942f8e2c522f",
+    "resources/readfile_3.py": "02861fb037cdf261140a50b2ea4a486638bcd0dec53dbe771b4a0e7a9d84ff9f",
+    "resources/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

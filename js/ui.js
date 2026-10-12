@@ -1,7 +1,7 @@
 /* =========================================================================
  * Track Layout Creator + — Web Port
  * ui.js — menus, dialogs, sidebar wiring, file I/O and bootstrap
- *         (web port of the MIT-licensed TLC+ desktop app v1.2.0-beta2)
+ *         (web port of the MIT-licensed TLC+ desktop app v1.3.0)
  *
  * Original tool: Copyright (c) 2017 eran0004, (c) 2026 daydrive7 (MIT)
  * ========================================================================= */
@@ -201,6 +201,10 @@ function preferencesWindow() {
       return label;
     }
 
+    body.appendChild(checkbox('Classic (light) theme', () => S.theme === 'Classic', v => { S.theme = v ? 'Classic' : 'Dark'; applyTheme(); }));
+    body.appendChild(checkbox('Show Elevation', () => S.showElevation, v => { S.showElevation = v; applyViewVisibility(); saveConfig(); }));
+    body.appendChild(checkbox('Show TLC+ title', () => S.showTitle, v => { S.showTitle = v; applyViewVisibility(); saveConfig(); }));
+    body.appendChild(checkbox('Show Track Tracer', () => S.showImgVec, v => { S.showImgVec = v; updateSidebarVisibility(); saveConfig(); }));
     const sec2 = document.createElement('div');
     sec2.className = 'pref-section';
     sec2.appendChild(checkbox('Allow Circuit on Rally Stages (Exp.)', () => S.allowRallyCircuit, v => {
@@ -325,10 +329,10 @@ function showCreditsWindow() {
     web.className = 'credits-text';
     web.style.color = 'var(--grey)';
     web.textContent =
-      'TLC+ Web v1.0.0 (this page):\n' +
+      'TLC+ Web v1.3.0 (this page):\n' +
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
-      '  \u2022 Desktop releases: stable v1.1.2 \u00B7 latest beta v1.2.0-beta2.\n' +
+      '  \u2022 Based on desktop release v1.3.0.\n' +
       '  \u2022 Runs fully client-side; hostable on GitHub Pages. MIT licensed.\n' +
       '  \u2022 Some features can be exclusively for TLC+ Web.';
     div.appendChild(web);
@@ -453,7 +457,8 @@ const MENU_BUILDERS = {
      * settings with languages tucked into a flyout submenu. */
     return [
       { label: tr('Load track'), action: loadTrackFile },
-      { label: tr('Save track'), action: saveTrackFile },
+      { label: tr('Save track') + ' (.tlcw)', action: saveTrackFile },
+      { label: tr('Export desktop track (.trk5)'), action: exportDesktopTrack },
       { label: tr('Save to Browser') + ' \u2605', action: vaultSaveDialog },
       { label: tr('Load from Browser') + ' \u2605', action: vaultLoadDialog },
       '-',
@@ -508,6 +513,7 @@ function setLanguage(code) {
   CURRENT_LANG = code;
   saveConfig();
   applyLanguageToDom();
+  refreshDecorationPalette();
   displayChange();
   toast(tr('Language updated'));
 }
@@ -541,9 +547,14 @@ function applyLanguageToDom() {
 /* ------------------------------------------------------------------ */
 /* Scenery switching                                                  */
 /* ------------------------------------------------------------------ */
-function switchScenery(index) {
+async function switchScenery(index) {
+  if (index === S.sceneryindex) return;
+  if (decorations.length && await messageBox(tr('Decorations'), tr('Switching scenery removes all placed decorations. Continue?'), [tr('Yes'), tr('No')]) !== 0) return;
+  saveToHistory(); decorations = []; selectedDeco = null;
   S.sceneryindex = index;
+  refreshDecorationPalette();
   getHeightmap(index).then((hm) => {
+    if (S.sceneryindex !== index) return;
     S.heightMap = hm;
     updateStats();
     navTerrainCache = null;
@@ -553,7 +564,9 @@ function switchScenery(index) {
 }
 
 function loadHeightMap(display) {
-  return getHeightmap(S.sceneryindex).then((hm) => {
+  const index = S.sceneryindex;
+  return getHeightmap(index).then((hm) => {
+    if (S.sceneryindex !== index) return;
     S.heightMap = hm;
     if (display !== false) {
       displayChange();
@@ -610,23 +623,25 @@ function exportTEDFile() {
 }
 
 function saveTrackFile() {
-  const buf = makeTrk5(S, polygon);
-  downloadBlob(new Blob([buf], { type: 'application/octet-stream' }), timestampName('.trk5'));
+  const buf = makeWebProject(S, polygon, decorations);
+  downloadBlob(new Blob([buf], { type: 'application/octet-stream' }), timestampName('.tlcw'));
   toast(tr('Track saved'), 'success');
 }
 
 function loadTrackFile() {
-  promptFile('.trk,.trk5,.trk4,.trk3,.trk2', false).then((res) => {
+  promptFile('.tlcw,.trk,.trk5,.trk4,.trk3,.trk2', false).then((res) => {
     if (!res) return;
     try {
-      const parsed = parseTrkFile(res.buffer);
+      const parsed = parseProjectFile(res.buffer);
       if (!parsed || !parsed.polygon.length) {
         messageBox(tr('Error'), tr('Could not read track file.'));
         return;
       }
       saveToHistory();
       polygon = parsed.polygon;
+      decorations = parsed.decorations || []; selectedDeco = null;
       Object.assign(S, parsed.state);
+      applyTheme(); refreshDecorationPalette();
       selectedPoints = [];
       syncSidebarControls();
       loadHeightMap(false).then(() => {
@@ -647,6 +662,7 @@ function importPolygonFile() {
     const raw = parsePolygonCSV(res.content);
     if (!raw.length) { messageBox(tr('Error'), tr('Could not import polygon.')); return; }
     saveToHistory();
+    decorations = []; selectedDeco = null;
     polygon = raw.map(pt => makeCoordinate(pt[0], pt[1], pt[2] !== undefined ? pt[2] : 0,
       pt[3] !== undefined ? pt[3] : 90, pt[4] !== undefined ? pt[4] : -1,
       pt[5] !== undefined ? parseInt(pt[5]) : 0));
@@ -665,7 +681,7 @@ function exportPolygonFile() {
 
 /* ------------------------------------------------------------------ */
 /* Local track vault (browser storage) — TLC+ Web exclusive            */
-/* Tracks are persisted in localStorage as base64 TRK5 payloads,      */
+/* Tracks are persisted in localStorage as base64 project payloads (legacy TRK5 also reads),      */
 /* like in-game save files: name them, list them, load/delete anytime. */
 /* ------------------------------------------------------------------ */
 const VAULT_KEY = 'tlcp_vault';
@@ -756,7 +772,7 @@ function vaultSaveDialog() {
         if (i !== 1) return;
       }
       vault[name] = {
-        data: bytesToBase64(makeTrk5(S, polygon)),
+        data: bytesToBase64(makeWebProject(S, polygon, decorations)),
         savedAt: new Date().toISOString(),
         points: polygon.length,
         length: Math.round(trackLengthState.total),
@@ -812,14 +828,16 @@ function vaultLoadTrack(name) {
   const entry = vaultRead()[name];
   if (!entry) return;
   try {
-    const parsed = parseTrkFile(base64ToBytes(entry.data));
+    const parsed = parseProjectFile(base64ToBytes(entry.data));
     if (!parsed || !parsed.polygon.length) {
       messageBox(tr('Error'), tr('Could not read track file.'));
       return;
     }
     saveToHistory();
     polygon = parsed.polygon;
+    decorations = parsed.decorations || []; selectedDeco = null;
     Object.assign(S, parsed.state);
+    applyTheme(); refreshDecorationPalette();
     selectedPoints = [];
     syncSidebarControls();
     loadHeightMap(false).then(() => {
@@ -901,13 +919,15 @@ function importTedEditable() {
     try {
       const ted = new TEDTrackObject(res.buffer, res.name);
       const newPolygon = tedToPolygon(ted);
-      if (newPolygon.length > 2) {
+      if (newPolygon.length >= (ted.header['isloopcourse'][3] ? 3 : 2)) {
         saveToHistory();
         polygon = newPolygon;
         selectedPoints = [];
         S.circuit = !!ted.header['isloopcourse'][3];
         S.sceneryindex = ted.header['sceneryindex'][3];
         S.roadWidth = ted.header['roadwidth'][3] - roadWidthOffset;
+        decorations = importDecorations(ted); selectedDeco = null;
+        refreshDecorationPalette();
         syncSidebarControls();
         loadHeightMap(false).then(() => {
           displayChange();
@@ -1018,6 +1038,7 @@ function runGenerator(style) {
   saveToHistory();
   const result = generateMathTrack(style);
   polygon = result.polygon;
+  decorations = []; selectedDeco = null;
   S.circuit = result.circuit;
   selectedPoints = [];
   syncSidebarControls();
@@ -1030,6 +1051,7 @@ function runRandomLayout() {
   saveToHistory();
   const result = generateRandomLayout();
   polygon = result.polygon;
+  decorations = []; selectedDeco = null;
   S.circuit = result.circuit;
   selectedPoints = [];
   syncSidebarControls();
@@ -1047,6 +1069,7 @@ function runImageTrace() {
         const finalPoints = traceImageToTrack(img, 1000, mode);
         saveToHistory();
         polygon = finalPoints;
+        decorations = []; selectedDeco = null;
         selectedPoints = [];
         S.circuit = true;
         syncSidebarControls();
@@ -1425,6 +1448,9 @@ function initApp() {
   applyLanguageToDom();
 
   initSidebar();
+  initDecorations();
+  document.getElementById('btn-trace-gps').addEventListener('click', runGPSTrace);
+  applyViewVisibility();
   initMenus();
   initSplitter();
   initMobile();

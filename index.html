@@ -15,7 +15,7 @@
     <div class="splash-inner">
       <svg viewBox="0 0 32 32" class="splash-icon" aria-hidden="true"><path d="M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
       <div class="splash-name">TLC+ Web</div>
-      <div class="splash-version">Web v1.0.0 &middot; desktop beta v1.2.0-beta2</div>
+      <div class="splash-version">Web v1.3.0 &middot; desktop v1.3.0</div>
     </div>
 </div>
 
@@ -33,7 +33,7 @@
       <button class="tb-menu-btn" id="mb-theme" data-menu="theme">Theme</button>
       <button class="tb-menu-btn" id="mb-help" data-menu="help">Help</button>
     </nav>
-    <span class="tb-version" title="Desktop releases: stable v1.1.2 &middot; beta v1.2.0-beta2">Web v1.0.0</span>
+    <span class="tb-version" title="Based on desktop release v1.3.0">Web v1.3.0</span>
   </header>
 
   <!-- Dropdown menus -->
@@ -47,6 +47,7 @@
         <button class="tab-btn active" id="btn-tab-geom" role="tab" data-tab="geometry">Geometry</button>
         <button class="tab-btn" id="btn-tab-map" role="tab" data-tab="map">Map &amp; Toggles</button>
         <button class="tab-btn" id="btn-tab-gen" role="tab" data-tab="generators">Generators</button>
+        <button class="tab-btn" role="tab" data-tab="decorations">Decorations</button>
       </div>
       <div id="sidebar-scroll">
 
@@ -133,6 +134,23 @@
           </div>
         </div>
 
+        <div class="sidebar-tab hidden" id="tab-decorations" role="tabpanel">
+          <div class="sec-label">DECORATIONS</div>
+          <p class="sec-desc">Click beside the track to place. Drag to move; right-click to delete.</p>
+          <div id="deco-palette"></div>
+          <div class="deco-options">
+            <label>Track <select id="deco-track"><option>A</option><option>B</option><option selected>AB</option><option>CURB</option></select></label>
+            <label>Side <select id="deco-side"><option value="left">Left</option><option value="right">Right</option></select></label>
+          </div>
+          <div class="check-row" data-var="decoSnap" data-cmd="displayChange"><label><input type="checkbox">Snap to 5 m grid</label></div>
+          <p id="deco-count" class="sec-desc">0 / 1000</p>
+          <label class="sec-desc">Fill interval (m) <input id="deco-interval" type="number" min="5" value="100"></label>
+          <button class="styled-btn" id="deco-fill">Fill Track</button>
+          <button class="styled-btn secondary" id="deco-flip">Flip Side (F)</button>
+          <button class="styled-btn secondary" id="deco-variant">Cycle variant (V)</button>
+          <button class="styled-btn danger" id="deco-delete">Delete selected</button>
+          <button class="styled-btn danger" id="deco-clear">Clear all decorations</button>
+        </div>
         <!-- TAB 3: GENERATORS -->
         <div class="sidebar-tab hidden" id="tab-generators" role="tabpanel">
           <div id="proc-container">
@@ -147,7 +165,7 @@
           </div>
 
           <div id="img-container" class="hidden">
-            <div class="sec-label">IMAGE VECTORIZER</div>
+            <div class="sec-label">Track Tracer</div>
             <p class="sec-desc">Trace a track layout from a PNG/JPG image using advanced algorithms:</p>
             <div class="radio-row-group" id="trace-modes">
               <label><input type="radio" name="tracemode" value="centerline" checked> Centerline (Drivable)</label>
@@ -155,6 +173,8 @@
               <label><input type="radio" name="tracemode" value="smart-outline"> Smart Fill (TSP)</label>
             </div>
             <button class="styled-btn success" id="btn-trace-image">Trace Image</button>
+            <div class="slider-row" data-min="50" data-max="100" data-res="1" data-var="traceAccuracy"><label>Trace Accuracy (%)</label><input type="range"><input type="number" class="slider-val"></div>
+            <button class="styled-btn success" id="btn-trace-gps">Trace GPX / CSV</button>
           </div>
 
           <div id="imp-container">
@@ -194,6 +214,7 @@
           <button class="tool-btn" data-tool="pan" data-tip="Panning tool" title="Panning tool">
             <svg viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6.5 7S5 17.5 5 14v-3a1.5 1.5 0 0 1 3 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
+          <button class="tool-btn" data-tool="decorate" title="Decoration tool" data-tip="Decoration tool">♣</button>
           <div class="toolbar-sep"></div>
           <button class="tool-btn" id="btn-zoom-in" data-tip="Zoom in" title="Zoom in"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 7v6M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           <button class="tool-btn" id="btn-zoom-out" data-tip="Zoom out" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10h6M15 15l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -245,12 +266,16 @@
 <script src="js/geometry.js"></script>
 <script src="js/heightmap.js"></script>
 <script src="js/ted.js"></script>
+<script src="js/decoration-data.js"></script>
 <script src="js/construct.js"></script>
 <script src="js/trace.js"></script>
 <script src="js/generators.js"></script>
 <script src="js/isoview.js"></script>
 <script src="js/app.js"></script>
 <script src="js/interact.js"></script>
+<script src="js/decorations.js"></script>
+<script src="js/path-trace.js"></script>
+<script src="js/project.js"></script>
 <script src="js/ui.js"></script>
 </body>
 </html>

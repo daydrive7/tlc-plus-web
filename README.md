@@ -4,8 +4,11 @@
 the GT6 track layout editor by **daydrive7** — rebuilt as a fully static
 HTML/CSS/JS application that runs entirely in the browser.
 
-The port is based on desktop release **v1.2.0-beta2** (latest beta; the
-current stable desktop release is **v1.1.2**).
+The port is based on the latest stable desktop release **[v1.3.0](https://github.com/daydrive7/track-layout-creator-plus/releases/tag/v1.3.0)**.
+The release archive is the source of the application code; `UPSTREAM.json` records
+its SHA-256 and the source file hashes used for this update.
+
+**[Open TLC+ Web](https://daydrive7.github.io/tlc-plus-web/)**
 
 ## Features
 
@@ -25,11 +28,14 @@ current stable desktop release is **v1.1.2**).
 - Image vectorizer — trace a track layout from PNG/JPG/WebP using
   Centerline (Zhang–Suen skeleton), Outline (Moore-neighbor) or Smart Fill
   (TSP) algorithms
-- GPX import (real-world GPS paths) and CSV path import
+- Track Tracer: turn GPX tracks/routes and latitude/longitude CSVs into
+  editable circuits or point-to-point stages, with 50–100% trace accuracy
+- GPX/CSV reference imports with real-world scale control
 
 ### Export / import
-- **`.TED` export** — identical binary output to the desktop tool
-- `.TRK5` save/load (also reads legacy `.TRK`, `.TRK2`, `.TRK3`, `.TRK4`)
+- **`.TED` export** — desktop-compatible binary records, including decorations
+- `.TLCW` web project save/load — retains decorations and editor settings
+- `.TRK5` geometry export/import (also reads legacy `.TRK`, `.TRK2`, `.TRK3`, `.TRK4`)
 - Polygon CSV (`.pgn`) import/export
 - TED import — both as a static reference path and reverse-engineered back
   into an editable polygon
@@ -39,32 +45,81 @@ current stable desktop release is **v1.1.2**).
 - Heightmap system with the original Death Valley, Eifel, Andalusia and
   Eifel Flat elevation data (full 1024×1024 float16 precision)
 - Marching-squares contour rendering with configurable fidelity
-- Isometric 3D preview with rotate/pan/zoom
+- Isometric 3D preview with rotate/vertical tilt/pan/zoom
 
 ### Interface
-- Dark theme with configurable accent colour
+- Dark and Classic (light) themes with configurable accent colour
+- Persisted Show Elevation and Show TLC+ title toggles
 - 9 languages: English, Polski, Español, Português (BR/PT), Français,
   Deutsch, 日本語, Русский
 - All original keyboard shortcuts (A/C/E/F/R/S/X/Y, arrows, Ctrl+Z/Y/S/O…)
 
-## Hosting on GitHub Pages
+## Decorations (v1.3.0)
 
-1. Create a new repository on GitHub (e.g. `track-layout-creator-web`).
-2. Copy **the entire contents of this folder** (including `index.html`,
-   `css/`, `js/`, `maps/`, `LICENSE`) to the repository root.
-3. In the repository, open **Settings → Pages**.
-4. Under *Build and deployment*, set **Source** to `Deploy from a branch`,
-   choose **main** (or `master`) and the **/ (root)** folder, then Save.
-5. Your site will be live at
-   `https://<your-username>.github.io/<repo-name>/` within a minute or two.
+- Scenery-aware palette from the official decoration catalog: trees, tents/houses,
+  rocks, cliffs, gates, stands, marshal posts, billboards and other available types
+- Click beside the track to place, drag to move, right-click or Delete to remove
+- Flip Side (F), cycle variant (V), Fill Track with a configurable interval,
+  optional 5 m snapping and the 1000-item limit
+- Exact 64-bit model IDs, side/track codes, height-included distances and forward
+  or reversed cliff transition chains in TED import/export
+- Decorations participate in undo/redo and web project/browser saves
+- Scenery changes ask before removing incompatible decorations
 
-No build step, no dependencies, no server code — everything is static and
-runs client-side. The app also works when opened directly from the file
-system (`file://`).
+## Saves and interoperability
 
-> **Note for project pages:** the app resolves the heightmap data relative
-> to the page location, so hosting at a sub-path
-> (`/repo-name/`) works out of the box.
+**Save track / Ctrl+S** writes `.tlcw`, the browser project format. Browser-vault
+saves use the same format and still load older TRK5 entries. Use **Export desktop
+track (.trk5)** for desktop geometry interchange; TRK5 cannot store decorations.
+Use **Export to TED** to include decorations in the game file.
+
+TED import reconstructs editable geometry and decorations. As in the desktop
+editable-import workflow, heights and banking are reset to zero/global; it is
+not a lossless conversion of an arbitrary TED back to an editor project.
+Canvas decoration markers show type and placement rather than rendering the
+in-game 3D models.
+
+## Hosting and development
+
+This repository deploys to GitHub Pages through `.github/workflows/deploy.yml`.
+In Settings → Pages, choose **GitHub Actions** as the source. Pushes to `main`
+run the parity checks before publishing the static app. Pull requests run the
+checks without deploying.
+
+No runtime dependencies, build step or server code. The app also opens directly
+from the file system (`file://`). Heightmaps load relative to the page, including
+GitHub Pages project subpaths. For local development:
+
+```sh
+python -m http.server 8000
+```
+
+Open `http://localhost:8000/` in a browser. Run the reproducible Node checks with:
+
+```sh
+node tests/parity.test.cjs
+```
+
+The suite uses golden cases generated from the v1.3.0 Python release: 984
+binary decoration records across all five scenery indices, 12 GPS cases,
+six geometry/banking cases, and hashes of all four terrain payloads. It also
+checks TED/cliff round trips, web projects, legacy TRK5, unknown UUID retention,
+isometric tilt and JavaScript syntax. For the browser integration checks:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:browser
+```
+
+The browser suite checks placement/drag/flip/undo/redo, file and browser-vault
+save/load, scenery-change confirmation, themes and visibility toggles, camera
+tilt, GPS uploads, TED downloads, all nine language switches, mobile layout,
+and direct `file://` loading. Screenshots and test downloads go to the ignored
+`test-results/` directory. GitHub CI runs both suites before deployment.
+
+See `tests/generate-desktop-fixtures.py`
+for regeneration with the extracted release and its Python dependencies.
 
 ## Controls (quick reference)
 
@@ -93,6 +148,9 @@ Plain classic scripts (no bundler). Load order is defined at the bottom of
 - `js/ted.js` — TED binary reader/writer, TRK formats, GPX/CSV import
 - `js/construct.js` — the TED construction pipeline (banks, heights,
   checkpoints, roads, header)
+- `js/decoration-data.js` / `js/decorations.js` — catalog, editor and TED records
+- `js/path-trace.js` — GPX/CSV tracing pipeline
+- `js/project.js` — lossless web project persistence and view preferences
 - `js/trace.js` — image vectorizer
 - `js/generators.js` — procedural track generators
 - `js/isoview.js` — isometric 3D view
@@ -105,7 +163,7 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-- **TLC+ Web v1.0.0** (this port) is derived from that MIT-licensed source
+- **TLC+ Web v1.3.0** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
 Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony

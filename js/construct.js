@@ -2,7 +2,7 @@
  * Track Layout Creator + — Web Port
  * construct.js — builds TED data structures from the editable polygon
  *               (port of the construct_* pipeline in the MIT-licensed
- *               TLC+ source v1.2.0-beta2).
+ *               TLC+ source v1.3.0).
  *
  * Original tool: Copyright (c) 2017 eran0004, (c) 2026 daydrive7 (MIT)
  * ========================================================================= */
@@ -869,7 +869,7 @@ function constructTEDData(polygon, S) {
   applyIncludeHeightLengths(BANKS, HEIGHTS);
   const CHECKPOINTS = constructCheckpoints(BANKS, S);
   const ROADS = constructRoads(BANKS, S);
-  const DECORATIONS = [];
+  const DECORATIONS = constructDecorations(BANKS, S);
 
   const HEADER = constructHeader(CPS, BANKS, HEIGHTS, CHECKPOINTS, ROADS, DECORATIONS, S);
   const track = new EditorTrackObject(HEADER, CPS, BANKS, HEIGHTS, CHECKPOINTS, ROADS, DECORATIONS);
@@ -920,6 +920,10 @@ function tedToPolygon(ted) {
       newPolygon.push(makeCoordinate(node[0], node[1], 0, radius, -1, 1));
     }
     prevX = currX; prevY = currY;
+  }
+  if (!isLoop && ted.cps.length > 1) {
+    const last = ted.cps[ted.cps.length - 1];
+    newPolygon.push(makeCoordinate(last.x, last.y, 0, 0, -1, 0));
   }
   return newPolygon;
 }

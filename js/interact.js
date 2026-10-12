@@ -340,6 +340,7 @@ function getLineHit(mx, my) {
 }
 
 function leftClick(mx, my, shift, ctrl) {
+  if (toolMode === 'decorate') { decoLeftClick(mx, my); return; }
   void ctrl;
   saveToHistory();
   mouseLocation = { x: mx, y: my };
@@ -400,6 +401,7 @@ function shiftLeftClick(mx, my) {
 }
 
 function b1Motion(mx, my) {
+  if (toolMode === 'decorate') { decoDragMotion(mx, my); return; }
   interacting = true;
 
   if (segmentChange) {
@@ -458,6 +460,7 @@ function b1Rotating(mx, my) {
 }
 
 function b1Release() {
+  if (toolMode === 'decorate') { decoDragEnd(); return; }
   interacting = false;
   if (toolMode === 'pan') canvasChange();
   else if (segmentChange) {
@@ -471,6 +474,8 @@ function b1Release() {
 }
 
 function rightClick(mx, my) {
+  if (toolMode === 'decorate' && decoDeleteAt(mx, my)) { panMode = false; return; }
+  if (toolMode === 'decorate') { panMode = true; mouseLocation = {x:mx,y:my}; return; }
   saveToHistory();
   mouseLocation = { x: mx, y: my };
   const pointIndex = getPointIndex(mx, my);
@@ -483,6 +488,7 @@ function rightClick(mx, my) {
 }
 
 function b3Motion(mx, my) {
+  if (toolMode === 'decorate' && !panMode) return;
   interacting = true;
   if (!panMode) {
     if (toolMode === 'camber') changeCamber(my);
@@ -679,6 +685,7 @@ function flipDirection() {
   if (!polygon.length) return;
   saveToHistory();
   polygon.reverse();
+  for (const d of decorations) { d.vpos = trackLengthState.total - d.vpos; d.side = d.side === 'left' ? 'right' : 'left'; delete d.rotation; }
   for (let i = 0; i < 2; i++) polygon.unshift(polygon.pop());
   displayChange();
 }
@@ -793,7 +800,7 @@ function bindCanvasEvents() {
     e.preventDefault();
     const [mx, my] = localCoords(e);
     if (e.button === 0) {
-      if (e.shiftKey) { shiftLeftClick(mx, my); return; }
+      if (e.shiftKey && toolMode !== 'decorate') { shiftLeftClick(mx, my); return; }
       dragging = true;
       leftClick(mx, my, e.shiftKey, e.ctrlKey);
       if (toolMode === 'pan') mouseLocation = { x: mx, y: my };
@@ -953,6 +960,12 @@ function bindKeyboard() {
       return;
     }
 
+    if (toolMode === 'decorate') {
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteDecoration(); return; }
+      if (e.key === 'Escape') { selectedDeco = null; displayChange(); return; }
+      if (e.key.toLowerCase() === 'f') { flipDecorationSide(); return; }
+      if (e.key.toLowerCase() === 'v') { cycleDecorationVariant(); return; }
+    }
     switch (e.key) {
       case 'ArrowLeft': e.preventDefault(); if (selectedPoints.length) movePoint(-1, 0); else moveStart(-1); return;
       case 'ArrowRight': e.preventDefault(); if (selectedPoints.length) movePoint(1, 0); else moveStart(1); return;

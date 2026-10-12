@@ -1,7 +1,7 @@
 /* =========================================================================
  * Track Layout Creator + — Web Port
  * app.js — application core: state, canvas rendering, interactions
- *          (web port of the MIT-licensed TLC+ desktop app v1.2.0-beta2)
+ *          (web port of the MIT-licensed TLC+ desktop app v1.3.0)
  *
  * Original tool: Copyright (c) 2017 eran0004, (c) 2026 daydrive7 (MIT)
  * ========================================================================= */
@@ -51,11 +51,16 @@ const S = {
 
   // Generators / prefs
   showProcGen: true,
-  showImgVec: false,
+  showImgVec: true,
   showExtPath: true,
   allowRallyCircuit: false,
   snap: false,
   accentColor: '#0A84FF',
+  theme: 'Dark',
+  showElevation: true,
+  showTitle: true,
+  traceAccuracy: 50,
+  decoSnap: true,
 
   // Scenery
   sceneryindex: 5,   // EIFEL_FLAT
@@ -67,11 +72,13 @@ const S = {
   heightMap: null,
 };
 
-const SCENERIES = { 1: 'Death Valley', 2: 'Eifel', 3: 'Andalusia', 5: 'Eifel Flat' };
+const SCENERIES = { 1: 'Death Valley', 2: 'Eifel', 3: 'Andalusia', 4: 'Eifel (alt)', 5: 'Eifel Flat' };
 const DEATH_VALLEY = 1, EIFEL = 2, ANDALUSIA = 3, EIFEL_FLAT = 5;
 const HEIGHTMAP_STEPS = [50, 25, 10, 5, 2.5, 1];
 
 /* Editable data */
+let decorations = [];
+let selectedDeco = null;
 let polygon = [];
 let CPS = [];
 let referencePath = [];
@@ -140,7 +147,7 @@ function requestRedraw(parts) {
         dirty.canvas = dirty.polygon = dirty.track = false;
         try { drawCanvas(); } catch (e) { console.warn('draw error in canvas:', e); }
         try { drawPolygon(polygon); } catch (e) { console.warn('draw error in polygon:', e); }
-        try { drawTrack(polygon); } catch (e) { console.warn('draw error in track:', e); }
+        try { drawTrack(polygon); drawDecorations(); } catch (e) { console.warn('draw error in track:', e); }
       }
       if (dirty.nav) {
         dirty.nav = false;
@@ -203,16 +210,23 @@ function applyTheme() {
   THEME.LABELTEXT = '#E0E0E0';
   THEME.GRID_COLOR = '#333333';
   THEME.GRID_LABEL = '#858585';
+  if (S.theme === 'Classic') {
+    THEME.ACCENT_LIGHT = darkenHex(accent, 0.15);
+    Object.assign(THEME, {CANVAS_BG: '#F5F5F5', DESKTOP_BG: '#EEEEEE', NAV_BG: '#FFFFFF',
+      DARKER_SILVER: '#FFFFFF', LIGHT_SILVER: '#D0D0D0', SILVER: '#EEEEEE', WHITE: '#202020',
+      GREY: '#666666', LABELTEXT: '#202020', GRID_COLOR: '#DDDDDD', GRID_LABEL: '#666666'});
+  }
+  THEME.DARK_SILVER = THEME.GRID_COLOR;
   THEME.POLYGON_BASE = THEME.ACCENT_LIGHT;
   THEME.POLYGON_HOVER = '#FFE600';
   THEME.POLYGON_SELECTED = '#FF9F0A';
   THEME.POLYGON_MOD = '#30D158';
   THEME.POLYGON_MOD_2 = '#FF8080';
-  THEME.TRACK_TRACK = '#E0E0E0';
+  THEME.TRACK_TRACK = S.theme === 'Classic' ? '#444444' : '#E0E0E0';
   THEME.TRACK_BORDER = '#858585';
   THEME.NAV_LINE = THEME.ACCENT_LIGHT;
   THEME.NAV_SLOPE = '#FF9F0A';
-  THEME.NAV_GRID = '#404040';
+  THEME.NAV_GRID = S.theme === 'Classic' ? '#DDDDDD' : '#404040';
   THEME.NAV_CURSOR = '#FF453A';
   THEME.WARNING_1 = '#FF453A';
   THEME.WARNING_2 = '#FF9F0A';
@@ -220,10 +234,12 @@ function applyTheme() {
   THEME.H_MAGENTA = [130, 0, 130];
 
   const root = document.documentElement;
+  root.dataset.theme = S.theme;
+  applyViewVisibility();
   root.style.setProperty('--accent', THEME.ACCENT);
   root.style.setProperty('--accent-light', THEME.ACCENT_LIGHT);
   root.style.setProperty('--accent-dark', THEME.ACCENT_DARK);
-  const titleBg = darkenHex(THEME.ACCENT, 0.88);
+  const titleBg = S.theme === 'Classic' ? lightenHex(THEME.ACCENT, 0.92) : darkenHex(THEME.ACCENT, 0.88);
   root.style.setProperty('--titlebar-bg', titleBg);
 
   // redraw with new colours
@@ -237,9 +253,11 @@ function applyTheme() {
 function saveConfig() {
   try {
     const cfg = {
-      theme: 'Dark',
+      theme: S.theme,
+      show_elevation: S.showElevation,
+      show_title: S.showTitle,
       elev_height: document.getElementById('nav-area') ?
-        Math.round(document.getElementById('nav-area').getBoundingClientRect().height) : 160,
+        (Math.round(document.getElementById('nav-area').getBoundingClientRect().height) || parseFloat(document.getElementById('nav-area').style.flexBasis) || 160) : 160,
       language: CURRENT_LANG,
       accent_color: S.accentColor,
       show_proc_gen: S.showProcGen,
@@ -255,6 +273,9 @@ function loadConfig() {
     const raw = localStorage.getItem('tlcp_config');
     if (!raw) return;
     const cfg = JSON.parse(raw);
+    if (cfg.theme === 'Classic') S.theme = 'Classic';
+    if (typeof cfg.show_elevation === 'boolean') S.showElevation = cfg.show_elevation;
+    if (typeof cfg.show_title === 'boolean') S.showTitle = cfg.show_title;
     if (cfg.accent_color) S.accentColor = cfg.accent_color;
     if (cfg.language && (window.TLC_LOCALES || {})[cfg.language]) CURRENT_LANG = cfg.language;
     if (cfg.elev_height && cfg.elev_height > 30) {
@@ -371,37 +392,31 @@ function sizeCanvases() {
 /* History (undo / redo)                                              */
 /* ------------------------------------------------------------------ */
 function snapshotPolygon() {
-  return polygon.map(p => [p.x, p.y, p.z, p.radius, p.camber, p.segments]);
+  return {polygon: polygon.map(p => [p.x,p.y,p.z,p.radius,p.camber,p.segments]),
+    decorations: decorations.map(d => ({...d})), scenery: S.sceneryindex, circuit: S.circuit};
+}
+function restoreSnapshot(snap) {
+  polygon = snap.polygon.map(v => makeCoordinate(...v));
+  decorations = snap.decorations.map(d => ({...d}));
+  const changed = S.sceneryindex !== snap.scenery;
+  S.sceneryindex = snap.scenery; S.circuit = snap.circuit;
+  selectedPoints = []; selectedDeco = null;
+  syncSidebarControls(); refreshDecorationPalette();
+  if (changed) loadHeightMap(false).then(displayChange);
+  displayChange();
 }
 function saveToHistory(clearFuture) {
   const current = snapshotPolygon();
-  if (!history.length || JSON.stringify(current) !== JSON.stringify(history[history.length - 1])) {
-    history.push(current);
-    if (history.length > 100) history.shift();
+  if (!history.length || JSON.stringify(current) !== JSON.stringify(history[history.length-1])) {
+    history.push(current); if (history.length > 100) history.shift();
   }
   if (clearFuture !== false) future = [];
 }
-function saveToFuture() {
-  const current = snapshotPolygon();
-  if (!future.length || JSON.stringify(current) !== JSON.stringify(future[future.length - 1])) {
-    future.push(current);
-  }
-}
 function undo() {
-  if (history.length > 0) {
-    saveToFuture();
-    polygon = history.pop().map(v => makeCoordinate(v[0], v[1], v[2], v[3], v[4], v[5]));
-    selectedPoints = [];
-    displayChange();
-  }
+  if (history.length) { future.push(snapshotPolygon()); restoreSnapshot(history.pop()); }
 }
 function redo() {
-  if (future.length > 0) {
-    saveToHistory(false);
-    polygon = future.pop().map(v => makeCoordinate(v[0], v[1], v[2], v[3], v[4], v[5]));
-    selectedPoints = [];
-    displayChange();
-  }
+  if (future.length) { saveToHistory(false); restoreSnapshot(future.pop()); }
 }
 
 /* ------------------------------------------------------------------ */

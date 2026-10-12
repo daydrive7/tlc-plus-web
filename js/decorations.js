@@ -154,8 +154,8 @@ function refreshDecorationPalette(){
     for(const single of ((type===12||type===18)&&both&&one?[false,true]:[false])){
       const btn=document.createElement('button');btn.className='styled-btn secondary';
       const img=document.createElement('img');img.src=decorationIconURL(type,S.sceneryindex);img.alt='';img.width=44;img.height=44;
-      const label=document.createElement('span');label.textContent=tr(name)+(single?' ('+tr('one side')+')':'');
-      btn.append(img,label);decorationIcon(type,S.sceneryindex);
+      btn.setAttribute('aria-label',tr(name)+(single?' ('+tr('one side')+')':''));
+      btn.append(img);decorationIcon(type,S.sceneryindex);
       btn.dataset.type=type;btn.dataset.single=single;
       btn.classList.toggle('active',type===decoType&&single===decoOneSide);
       btn.addEventListener('click',()=>{decoType=type;decoOneSide=single;setToolMode('decorate');refreshDecorationPalette();});el.appendChild(btn);

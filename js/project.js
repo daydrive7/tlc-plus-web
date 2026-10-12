@@ -7,7 +7,7 @@ function applyViewVisibility(){
 }
 function makeWebProject(state,points,items){
   const savedState={};
-  for(const [k,v] of Object.entries(state)){if(['number','string','boolean'].includes(typeof v)&&!['trackLength','cornerCount'].includes(k))savedState[k]=v;}
+  for(const [k,v] of Object.entries(state)){if(['number','string','boolean'].includes(typeof v)&&!['trackLength','cornerCount','optimizeInteraction'].includes(k))savedState[k]=v;}
   return new TextEncoder().encode(JSON.stringify({format:'TLC+ Web',version:1,desktopVersion:'1.3.0',state:savedState,polygon:points.map(p=>[p.x,p.y,p.z,p.radius,p.camber,p.segments]),decorations:items})).buffer;
 }
 function parseProjectFile(buffer){
@@ -18,7 +18,7 @@ function parseProjectFile(buffer){
   if(p.polygon.some(v=>!Array.isArray(v)||v.length!==6||v.some(n=>!Number.isFinite(n))))throw new Error('Invalid project coordinates');
   if(![1,2,3,4,5].includes(p.state.sceneryindex))throw new Error('Invalid project scenery');
   if(p.decorations.length>MAX_DECORATIONS||p.decorations.some(d=>!/^\d+$/.test(d.uuid)||!Number.isFinite(d.vpos)||d.vpos<0||!['left','right'].includes(d.side)||!['A','B','AB','CURB'].includes(d.track)))throw new Error('Invalid project decorations');
-  const state={};for(const [k,v] of Object.entries(p.state)){if(Object.prototype.hasOwnProperty.call(S,k)&&['number','string','boolean'].includes(typeof v))state[k]=v;}
+  const state={};for(const [k,v] of Object.entries(p.state)){if(k!=='optimizeInteraction'&&Object.prototype.hasOwnProperty.call(S,k)&&['number','string','boolean'].includes(typeof v))state[k]=v;}
   return {state,polygon:p.polygon.map(v=>makeCoordinate(...v)),decorations:p.decorations};
 }
 async function exportDesktopTrack(){

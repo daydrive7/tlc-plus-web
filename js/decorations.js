@@ -84,7 +84,8 @@ function decorationScreenPosition(d) {
   const length=trackLengthState.total,v=Math.min(length,d.vpos);
   const p=distanceToCoords(CPS,v),a=distanceToCoords(CPS,Math.max(0,v-1)),b=distanceToCoords(CPS,Math.min(length,v+1));
   const dx=b[0]-a[0],dy=b[1]-a[1],norm=Math.hypot(dx,dy)||1;
-  const offset=(S.roadWidth/2+10*(DECO_TRACK_OFFSET[d.track]||1.35))*(d.side==='left'?1:-1);
+  const symbol = decorationSymbol(d.type, S.sceneryindex);
+  const offset=['gate','rallygate'].includes(symbol) ? 0 : S.roadWidth/2*(1+(DECO_TRACK_OFFSET[d.track]||1.35))*(d.side==='left'?1:-1);
   return [worldToScreenX(p[0]+dy/norm*offset),worldToScreenY(p[1]-dx/norm*offset)];
 }
 function drawDecorations() {
@@ -93,15 +94,23 @@ function drawDecorations() {
   mainCtx.save(); mainCtx.setTransform(DPR(),0,0,DPR(),0,0);
   decorations.forEach((d,i)=>{
     const [x,y]=decorationScreenPosition(d),info=DECORATION_TYPE_INFO[d.type]||['?','dot','#AAAAAA'];
-    mainCtx.fillStyle=info[2]; mainCtx.strokeStyle=i===selectedDeco?THEME.POLYGON_SELECTED:THEME.LABELTEXT;
-    mainCtx.lineWidth=i===selectedDeco?3:1; mainCtx.beginPath(); mainCtx.arc(x,y,7,0,Math.PI*2); mainCtx.fill();mainCtx.stroke();
-    mainCtx.fillStyle=THEME.LABELTEXT;mainCtx.font='10px sans-serif';mainCtx.fillText(tr((TYPE_NAME_OVERRIDE[S.sceneryindex]||{})[d.type]||info[0]),x+10,y+3);
+    const icon = decorationIcon(d.type, S.sceneryindex);
+    const radius = Math.max(isTouchLayout() ? 12 : 6, Math.min(16, 8*Math.sqrt(zoom)));
+    const size = radius*2.8;
+    const length=d.length||decorationVariant(d,S.sceneryindex).len||50;
+    const a=decorationScreenPosition({...d,vpos:Math.max(0,d.vpos-length/2)});
+    const b=decorationScreenPosition({...d,vpos:Math.min(trackLengthState.total,d.vpos+length/2)});
+    mainCtx.strokeStyle=info[2];mainCtx.lineWidth=1.5;mainCtx.setLineDash([3,3]);
+    mainCtx.beginPath();mainCtx.moveTo(...a);mainCtx.lineTo(...b);mainCtx.stroke();mainCtx.setLineDash([]);
+    if(icon.complete&&icon.naturalWidth)mainCtx.drawImage(icon,x-size/2,y-size/2,size,size);
+    if(i===selectedDeco){mainCtx.strokeStyle=THEME.POLYGON_SELECTED;mainCtx.lineWidth=2;mainCtx.beginPath();mainCtx.arc(x,y,radius+5,0,Math.PI*2);mainCtx.stroke();}
   });mainCtx.restore();
 }
 function decorationHit(mx,my) {
   if(CPS.length<2)return null;
-  for(let i=decorations.length-1;i>=0;i--){const p=decorationScreenPosition(decorations[i]);if(Math.hypot(mx-p[0],my-p[1])<12)return i;}
-  return null;
+  let hit=null,distance=isTouchLayout()?24:16;
+  for(let i=decorations.length-1;i>=0;i--){const p=decorationScreenPosition(decorations[i]),d=Math.hypot(mx-p[0],my-p[1]);if(d<distance){hit=i;distance=d;}}
+  return hit;
 }
 function placementVariants(side,track) {
   let vs=decorationVariants(S.sceneryindex,decoType,side,track);
@@ -143,7 +152,10 @@ function refreshDecorationPalette(){
     const units=sc.variants.filter(v=>v.type===type),both=units.some(v=>v.disp[0]&&v.disp[1]),one=units.some(v=>!v.disp[0]||!v.disp[1]);
     const name=(TYPE_NAME_OVERRIDE[S.sceneryindex]||{})[type]||DECORATION_TYPE_INFO[type][0];
     for(const single of ((type===12||type===18)&&both&&one?[false,true]:[false])){
-      const btn=document.createElement('button');btn.className='styled-btn secondary';btn.textContent=tr(name)+(single?' ('+tr('one side')+')':'');
+      const btn=document.createElement('button');btn.className='styled-btn secondary';
+      const img=document.createElement('img');img.src=decorationIconURL(type,S.sceneryindex);img.alt='';img.width=44;img.height=44;
+      const label=document.createElement('span');label.textContent=tr(name)+(single?' ('+tr('one side')+')':'');
+      btn.append(img,label);decorationIcon(type,S.sceneryindex);
       btn.dataset.type=type;btn.dataset.single=single;
       btn.classList.toggle('active',type===decoType&&single===decoOneSide);
       btn.addEventListener('click',()=>{decoType=type;decoOneSide=single;setToolMode('decorate');refreshDecorationPalette();});el.appendChild(btn);

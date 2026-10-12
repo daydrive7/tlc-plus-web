@@ -569,7 +569,7 @@ button { font-family: inherit; }
   #left-panel { width: 260px; flex-basis: 260px; }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 700px), (pointer: coarse) {
   /* Sidebar becomes an off-canvas drawer */
   #left-panel {
     position: fixed; left: 0; top: 30px; bottom: 0;
@@ -610,4 +610,83 @@ button { font-family: inherit; }
   /* Modals fit the narrow screen */
   .modal-window { min-width: 0; width: calc(100vw - 24px); max-height: 82vh; }
   .modal-footer .styled-btn { min-width: 64px; }
+}
+
+
+#deco-palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#deco-palette .styled-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 78px; padding: 4px; }
+#deco-palette img { width: 44px; height: 44px; object-fit: contain; }
+#deco-palette span { line-height: 1.2; }
+#mobile-actions, #mobile-hint, #mobile-sidebar-header, .touch-tool-label { display: none; }
+.mobile-deco-form { display: grid; gap: 12px; margin-bottom: 14px; }
+.mobile-deco-form label { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; }
+.mobile-deco-form input, .mobile-deco-form select { color: var(--white); background: var(--silver); border: 1px solid var(--grey); padding: 10px; min-width: 0; }
+.mobile-guide-intro { font-size: 14px; line-height: 1.5; margin: 0 0 16px; }
+.mobile-guide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mobile-guide article { padding: 12px; background: var(--silver); border-radius: 8px; }
+.mobile-guide svg { width: 100%; height: 96px; }
+.mobile-guide h3 { font-size: 14px; margin: 8px 0; color: var(--accent-light); }
+.mobile-guide p { font-size: 13px; line-height: 1.5; margin: 0; }
+.guide-track { fill: none; stroke: var(--grey); stroke-width: 8; stroke-linecap: round; }
+.guide-node { fill: var(--accent); stroke: var(--white); stroke-width: 2; }
+.guide-finger > circle:first-child { fill: var(--darker-silver); stroke: var(--white); stroke-width: 2; }
+.guide-contact { fill: var(--accent); }
+.guide-arrow { fill: none; stroke: var(--accent-light); stroke-width: 2; }
+.guide-action { fill: var(--darker-silver); stroke: var(--accent); }
+.mobile-guide text { fill: var(--white); font: 11px sans-serif; text-anchor: middle; }
+.guide-tap { animation: guide-tap 1.8s ease-in-out infinite; transform-origin: center; }
+.guide-drag { animation: guide-drag 2.4s ease-in-out infinite alternate; }
+.guide-pinch-left { animation: guide-pinch-left 2.4s ease-in-out infinite alternate; }
+.guide-pinch-right { animation: guide-pinch-right 2.4s ease-in-out infinite alternate; }
+@keyframes guide-tap { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes guide-drag { to { transform: translate(18px, -12px); } }
+@keyframes guide-pinch-left { to { transform: translateX(-14px); } }
+@keyframes guide-pinch-right { to { transform: translateX(14px); } }
+@media (prefers-reduced-motion: reduce) { .mobile-guide g { animation: none; } }
+.iso-canvas { touch-action: none; }
+
+@media (max-width: 700px), (pointer: coarse) {
+  #app { height: 100dvh; }
+  #titlebar { height: 44px; flex-basis: 44px; }
+  .tb-menu-btn { min-height: 44px; }
+  #left-panel, #sidebar-backdrop { top: 44px; }
+  #mobile-actions { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 4px; padding: 5px 6px; background: var(--darker-silver); }
+  #mobile-actions button { min-height: 44px; padding: 4px; font-size: 12px; background: var(--silver); color: var(--white); border: 1px solid var(--grey); border-radius: 5px; }
+  #mobile-actions button:disabled { opacity: .4; }
+  #mobile-actions .active { background: var(--accent-dark); border-color: var(--accent); }
+  #mobile-hint { display: block; padding: 3px 8px 5px; font-size: 11px; line-height: 1.3; min-height: 22px; background: var(--darker-silver); }
+  #toolbar { top: auto; bottom: 8px; left: 6px; right: 6px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); padding: 5px; gap: 4px; }
+  #toolbar .toolbar-sep { display: none; }
+  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { display: flex; flex-direction: column; width: 100%; height: 48px; min-width: 0; padding: 3px 1px; gap: 2px; grid-column: auto; font-size: 10px; align-items: center; justify-content: center; }
+  .touch-tool-label { display: block; font-size: 10px; line-height: 12px; }
+  #toolbar .tool-btn svg { width: 20px; height: 20px; }
+  #stats-card { bottom: auto; top: 28px; right: 5px; }
+  #tab-bar .tab-btn, .sec-head { min-height: 44px; }
+  .check-row label, .radio-row-group label { min-height: 44px; display: flex; align-items: center; }
+  .styled-btn { min-height: 44px; }
+  .mobile-guide { grid-template-columns: 1fr; }
+}
+.decoration-tool-dark, .decoration-tool-light { width: 22px; height: 22px; object-fit: contain; }
+.decoration-tool-light { display: none; }
+:root[data-theme="Classic"] .decoration-tool-dark { display: none; }
+:root[data-theme="Classic"] .decoration-tool-light { display: block; }
+@media (max-width: 700px), (pointer: coarse) {
+  .tool-icon-btn { width: 44px; height: 44px; }
+  .iso-hint { display: none; }
+  .iso-header { min-height: 44px; }
+  .iso-close, .modal-close, .iso-toolbar button { min-width: 44px; min-height: 44px; }
+}
+@media (pointer: coarse) and (max-height: 500px), (max-width: 700px) and (max-height: 500px) {
+  #nav-area { flex-basis: 60px; height: 60px; min-height: 60px; }
+  #mobile-hint { display: none; }
+  #toolbar { display: flex; overflow-x: auto; }
+  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { flex: 1 0 52px; min-width: 52px; }
+  .mobile-guide { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 700px), (pointer: coarse) {
+  .iso-close { margin-left: auto; }
+  .iso-toolbar { top: 70px; }
+  .tb-menu-btn { min-width: 44px; }
+  #mobile-sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; min-height: 48px; border-bottom: 1px solid var(--grey); }
+  #mobile-sidebar-header button { min-width: 64px; min-height: 44px; background: var(--silver); color: var(--white); border: 1px solid var(--grey); border-radius: 4px; }
 }

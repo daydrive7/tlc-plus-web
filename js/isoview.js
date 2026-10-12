@@ -75,6 +75,7 @@ class IsoView {
     overlay.querySelector('[data-iso-shot]').addEventListener('click', () => this.exportPNG());
 
     this.canvas.addEventListener('contextmenu', e => e.preventDefault());
+    this.bindTouch();
     this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
     window.addEventListener('mousemove', this._moveHandler = (e) => this.onMouseMove(e));
     window.addEventListener('mouseup', this._upHandler = (e) => this.onMouseUp(e));
@@ -97,6 +98,30 @@ class IsoView {
     window.removeEventListener('resize', this._resizeHandler);
     this.overlay.remove();
     this.onClose();
+  }
+
+  bindTouch() {
+    let touch=null;
+    const point=t=>[t.clientX,t.clientY];
+    const capture=e=>{
+      if(e.touches.length>=2){const a=point(e.touches[0]),b=point(e.touches[1]);return {count:2,x:(a[0]+b[0])/2,y:(a[1]+b[1])/2,distance:Math.hypot(a[0]-b[0],a[1]-b[1])||1};}
+      const a=point(e.touches[0]);return {count:1,x:a[0],y:a[1]};
+    };
+    this.canvas.addEventListener('touchstart',e=>{e.preventDefault();touch=capture(e);},{passive:false});
+    this.canvas.addEventListener('touchmove',e=>{
+      e.preventDefault();const next=capture(e);
+      if(!touch||touch.count!==next.count){touch=next;return;}
+      const dx=next.x-touch.x,dy=next.y-touch.y;
+      if(next.count===2||this.toolMode==='pan'){
+        this.panOffset=this.panOffset||{x:0,y:0};this.panOffset.x+=dx;this.panOffset.y+=dy;
+        if(next.count===2)this.scale*=Math.max(0.5,Math.min(2,next.distance/touch.distance));
+      }else{
+        this.rotation+=dx*0.005;this.elevation=Math.max(Math.PI/36,Math.min(17*Math.PI/36,this.elevation+dy*0.005));
+      }
+      touch=next;this.drawBasic();
+    },{passive:false});
+    this.canvas.addEventListener('touchend',e=>{e.preventDefault();touch=e.touches.length?capture(e):null;this.projectAndDraw();},{passive:false});
+    this.canvas.addEventListener('touchcancel',()=>{touch=null;this.projectAndDraw();});
   }
 
   resize() {

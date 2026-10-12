@@ -24,6 +24,13 @@
     "resources/layoutOperations.py": "513980e4a85f57c92527f5a76f2d8c2753af33b02d5720a8c5d5c07a6ed2f441",
     "resources/pathTraceService.py": "a4ea0f6a3b50b5325f4e9c27264710ba4ed75921962b2a9628fe942f8e2c522f",
     "resources/readfile_3.py": "02861fb037cdf261140a50b2ea4a486638bcd0dec53dbe771b4a0e7a9d84ff9f",
-    "resources/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "resources/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "resources/icons/tools/decorate.gif": "36b33406d3d2c3820c786b0e9034ffc36d7b14fbd6f05944a57725b7e3e3ac4f",
+    "resources/icons/tools_light/decorate.gif": "835f89426f79966f88e45eb9be729b49d88a795c2cd08df6bbd9beaee4c13f05"
+  },
+  "decorationIconExport": {
+    "source": "TrackLayoutCreatorPlus.py::drawDecoSymbol",
+    "generator": "tests/generate-decoration-icons.py",
+    "format": "SVG"
   }
 }

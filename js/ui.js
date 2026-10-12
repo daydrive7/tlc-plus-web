@@ -329,7 +329,7 @@ function showCreditsWindow() {
     web.className = 'credits-text';
     web.style.color = 'var(--grey)';
     web.textContent =
-      'TLC+ Web v1.3.0 (this page):\n' +
+      'TLC+ Web v1.3.1 (this page):\n' +
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
       '  \u2022 Based on desktop release v1.3.0.\n' +
@@ -491,7 +491,8 @@ const MENU_BUILDERS = {
     { label: tr('Eifel Flat'), action: () => switchScenery(5) },
   ],
   help: () => [
-    { label: tr('Controls'), action: showHelpWindow },
+    { label: tr('Controls') + ' (PC)', action: showHelpWindow },
+    { label: tr('Controls (Mobile)'), action: showMobileHelp },
     { label: tr('Credits'), action: showCreditsWindow },
     '-',
     { label: 'TLC+ on GitHub \u2197', action: () => window.open('https://github.com/daydrive7/track-layout-creator-plus', '_blank') },
@@ -1159,6 +1160,7 @@ function initSidebar() {
     const input = row.querySelector('input[type="checkbox"]');
     input.addEventListener('change', () => {
       S[varName] = input.checked;
+      if (varName === 'optimizeInteraction') { if (!input.checked) pdmRestoreFidelity(); saveConfig(); }
       navTerrainCache = null;
       const cmd = row.dataset.cmd;
       if (cmd && typeof window[cmd] === 'function') window[cmd]();
@@ -1384,7 +1386,7 @@ function initSplitter() {
 /* Mobile layout (sidebar drawer + backdrop)                           */
 /* ------------------------------------------------------------------ */
 function isMobileLayout() {
-  return window.matchMedia('(max-width: 700px)').matches;
+  return window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
 }
 
 function initMobile() {
@@ -1397,8 +1399,12 @@ function initMobile() {
     document.getElementById('sidebar-divider').classList.add('hidden');
   }
 
-  // Handle crossing the desktop/mobile breakpoint (rotate, resize)
+  // Keyboard and orientation resizes must not dismiss an open touch drawer.
+  let mobileLayout = isMobileLayout();
   window.addEventListener('resize', () => {
+    const nextLayout = isMobileLayout();
+    if (nextLayout === mobileLayout) return;
+    mobileLayout = nextLayout;
     const panel = document.getElementById('left-panel');
     const divider = document.getElementById('sidebar-divider');
     if (isMobileLayout()) {
@@ -1454,6 +1460,7 @@ function initApp() {
   initMenus();
   initSplitter();
   initMobile();
+  initMobileControls();
   initTooltips();
   initWarningFlasher();
   bindCanvasEvents();

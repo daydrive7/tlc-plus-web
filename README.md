@@ -56,6 +56,10 @@ its SHA-256 and the source file hashes used for this update.
 
 ## Decorations (v1.3.0)
 
+- Desktop decoration artwork in the palette and on the canvas, with scenery-specific
+  tents, trees, rocks and other variants. The release ships vector icon drawings
+  rather than the optional PNG sprites; these SVGs are exported directly from
+  its `drawDecoSymbol` function, and the decoration tool uses the original GIFs.
 - Scenery-aware palette from the official decoration catalog: trees, tents/houses,
   rocks, cliffs, gates, stands, marshal posts, billboards and other available types
 - Click beside the track to place, drag to move, right-click or Delete to remove
@@ -76,8 +80,29 @@ Use **Export to TED** to include decorations in the game file.
 TED import reconstructs editable geometry and decorations. As in the desktop
 editable-import workflow, heights and banking are reset to zero/global; it is
 not a lossless conversion of an arbitrary TED back to an editor project.
-Canvas decoration markers show type and placement rather than rendering the
-in-game 3D models.
+Canvas decorations use the desktop icons and show their occupied track spans.
+They represent placement rather than rendering the in-game 3D models.
+
+## Mobile controls (Web v1.3.1)
+
+Open **Help → Controls (Mobile)** or the phone's **Help** button for an animated,
+illustrated gesture guide. **Controls (PC)** keeps the mouse and keyboard reference.
+
+- Bottom tools have larger labeled touch targets; top actions provide Multi,
+  All, Edit, Delete and Fit
+- Pen: tap to place or insert a node; Select: drag a node to move it
+- Drag empty canvas space to pan with any tool
+- Pinch/spread two fingers to zoom, or slide both fingers to pan, without placing
+  extra nodes or accidentally changing a selection
+- Multi selects several nodes for group movement, rotation, scale or deletion
+- Edit opens numeric node properties or decoration distance/side/track/variant
+- The isometric view supports one-finger rotation/tilt and two-finger pan/zoom
+- Portrait and landscape layouts; resizing for the keyboard keeps the drawer open
+
+**Performance Draft Mode (PDM) starts off.** The heightmap stays visible while
+panning, dragging or zooming. PDM remains available in Map & Toggles for devices
+that need it, and its explicit setting is stored per browser. Loading an older
+project cannot silently enable it.
 
 ## Hosting and development
 
@@ -115,7 +140,8 @@ npm run test:browser
 The browser suite checks placement/drag/flip/undo/redo, file and browser-vault
 save/load, scenery-change confirmation, themes and visibility toggles, camera
 tilt, GPS uploads, TED downloads, all nine language switches, mobile layout,
-and direct `file://` loading. Screenshots and test downloads go to the ignored
+direct `file://` loading, genuine multi-touch events, non-destructive pinch/pan,
+mobile selection and editing, landscape layout, and heightmap visibility. Screenshots and test downloads go to the ignored
 `test-results/` directory. GitHub CI runs both suites before deployment.
 
 See `tests/generate-desktop-fixtures.py`
@@ -149,6 +175,8 @@ Plain classic scripts (no bundler). Load order is defined at the bottom of
 - `js/construct.js` — the TED construction pipeline (banks, heights,
   checkpoints, roads, header)
 - `js/decoration-data.js` / `js/decorations.js` — catalog, editor and TED records
+- `js/decoration-icons.js` / `assets/` — desktop icons for the palette and canvas
+- `js/mobile.js` — touch gestures, mobile actions and illustrated controls guide
 - `js/path-trace.js` — GPX/CSV tracing pipeline
 - `js/project.js` — lossless web project persistence and view preferences
 - `js/trace.js` — image vectorizer
@@ -163,7 +191,7 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-- **TLC+ Web v1.3.0** (this port) is derived from that MIT-licensed source
+- **TLC+ Web v1.3.1** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
 Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony

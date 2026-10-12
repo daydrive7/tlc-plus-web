@@ -6,7 +6,7 @@ const root=path.join(__dirname,'..');
 const context=vm.createContext({console,TextEncoder,TextDecoder,ArrayBuffer,DataView,Uint8Array,Date,Math,
  window:{},document:{getElementById:()=>null,querySelector:()=>null,addEventListener:()=>{}},
  requestAnimationFrame:()=>{},localStorage:{setItem:()=>{}},setTimeout:()=>{},clearTimeout:()=>{}});
-for(const name of ['geometry','heightmap','ted','decoration-data','construct','isoview','app','decorations','path-trace','project'])vm.runInContext(fs.readFileSync(path.join(root,'js',name+'.js'),'utf8'),context,{filename:name+'.js'});
+for(const name of ['geometry','heightmap','ted','decoration-data','decoration-icons','mobile','construct','isoview','app','decorations','path-trace','project'])vm.runInContext(fs.readFileSync(path.join(root,'js',name+'.js'),'utf8'),context,{filename:name+'.js'});
 const run=code=>vm.runInContext(code,context);
 for (const name of fs.readdirSync(path.join(root,'js')).filter(n=>n.endsWith('.js'))) new vm.Script(fs.readFileSync(path.join(root,'js',name),'utf8'),{filename:name});
 const fixtures=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/desktop-v1.3.0.json')));
@@ -57,6 +57,9 @@ run(`polygon=[makeCoordinate(0,0,0,40,-1,1),makeCoordinate(1000,0,0,40,-1,1),mak
  }
  const project=parseProjectFile(makeWebProject(S,polygon,original));
  if(JSON.stringify(project.decorations)!==JSON.stringify(original))throw new Error('Project lost decorations');
+  const oldProject=JSON.parse(new TextDecoder().decode(makeWebProject(S,polygon,original)));
+  oldProject.state.optimizeInteraction=true;
+  if('optimizeInteraction' in parseProjectFile(new TextEncoder().encode(JSON.stringify(oldProject)).buffer).state)throw new Error('Old project enabled PDM');
  const legacy=parseProjectFile(makeTrk5(S,polygon));
  if(legacy.polygon.length!==polygon.length)throw new Error('TRK5 compatibility');
 `);

@@ -46,7 +46,7 @@ const S = {
   displayLabels: true,
   displayTracklengthLabels: true,
   tracklengthLabelsMode: 'Length',
-  optimizeInteraction: true,
+  optimizeInteraction: false,
   referenceScale: 1.0,
 
   // Generators / prefs
@@ -147,7 +147,7 @@ function requestRedraw(parts) {
         dirty.canvas = dirty.polygon = dirty.track = false;
         try { drawCanvas(); } catch (e) { console.warn('draw error in canvas:', e); }
         try { drawPolygon(polygon); } catch (e) { console.warn('draw error in polygon:', e); }
-        try { drawTrack(polygon); drawDecorations(); } catch (e) { console.warn('draw error in track:', e); }
+        try { drawTrack(polygon); drawDecorations(); updateMobileActions(); } catch (e) { console.warn('draw error in track:', e); }
       }
       if (dirty.nav) {
         dirty.nav = false;
@@ -256,6 +256,7 @@ function saveConfig() {
       theme: S.theme,
       show_elevation: S.showElevation,
       show_title: S.showTitle,
+      optimize_interaction: S.optimizeInteraction,
       elev_height: document.getElementById('nav-area') ?
         (Math.round(document.getElementById('nav-area').getBoundingClientRect().height) || parseFloat(document.getElementById('nav-area').style.flexBasis) || 160) : 160,
       language: CURRENT_LANG,
@@ -273,6 +274,7 @@ function loadConfig() {
     const raw = localStorage.getItem('tlcp_config');
     if (!raw) return;
     const cfg = JSON.parse(raw);
+    if (typeof cfg.optimize_interaction === 'boolean') S.optimizeInteraction = cfg.optimize_interaction;
     if (cfg.theme === 'Classic') S.theme = 'Classic';
     if (typeof cfg.show_elevation === 'boolean') S.showElevation = cfg.show_elevation;
     if (typeof cfg.show_title === 'boolean') S.showTitle = cfg.show_title;
@@ -575,7 +577,7 @@ function drawContourLines(cellSize) {
     mainCtx.lineWidth = width;
 
     for (const line of lineDict[elevationStr]) {
-      if (width === 2 && S.displayLabels && !interacting && line.length > 1) {
+      if (width === 2 && S.displayLabels && !(interacting && S.optimizeInteraction) && line.length > 1) {
         const li = Math.floor(line.length / 2);
         const x = (line[li - 1][0] + line[li][0]) / 2;
         const y = (line[li - 1][1] + line[li][1]) / 2;

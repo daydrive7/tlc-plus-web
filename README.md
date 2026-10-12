@@ -109,7 +109,9 @@ project cannot silently enable it.
 This repository deploys to GitHub Pages through `.github/workflows/deploy.yml`.
 In Settings → Pages, choose **GitHub Actions** as the source. Pushes to `main`
 run the parity checks before publishing the static app. Pull requests run the
-checks without deploying.
+checks without deploying. Published JavaScript and CSS URLs include the commit
+SHA, so reloading after an update fetches the matching assets instead of
+retaining a cached older interface.
 
 No runtime dependencies, build step or server code. The app also opens directly
 from the file system (`file://`). Heightmaps load relative to the page, including
@@ -191,7 +193,7 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-- **TLC+ Web v1.3.1** (this port) is derived from that MIT-licensed source
+- **TLC+ Web v1.3.2** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
 Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony

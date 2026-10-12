@@ -329,7 +329,7 @@ function showCreditsWindow() {
     web.className = 'credits-text';
     web.style.color = 'var(--grey)';
     web.textContent =
-      'TLC+ Web v1.3.1 (this page):\n' +
+      'TLC+ Web v1.3.2 (this page):\n' +
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
       '  \u2022 Based on desktop release v1.3.0.\n' +

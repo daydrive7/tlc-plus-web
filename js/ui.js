@@ -45,6 +45,7 @@ function toast(message, type, duration) {
   if (!wrap) {
     wrap = document.createElement('div');
     wrap.className = 'toast-wrap';
+    wrap.setAttribute('role', 'status'); wrap.setAttribute('aria-live', 'polite');
     document.body.appendChild(wrap);
   }
   const el = document.createElement('div');
@@ -77,11 +78,12 @@ function messageBox(title, message, buttons) {
       const btn = document.createElement('button');
       btn.className = 'modal-btn' + (i === buttons.length - 1 && buttons.length > 1 ? '' : '');
       btn.textContent = label;
-      btn.addEventListener('click', () => { backdrop.remove(); resolve(i); });
+      btn.addEventListener('click', () => { resolve(i); backdrop.remove(); });
       footer.appendChild(btn);
     });
     backdrop.querySelector('.modal-close').addEventListener('click', () => { backdrop.remove(); resolve(-1); });
     layer.appendChild(backdrop);
+    activateAccessibleModal(backdrop, () => resolve(-1));
   });
 }
 
@@ -105,6 +107,7 @@ function openModal(title, bodyBuilder, onOpen) {
   backdrop.addEventListener('mousedown', (e) => { if (e.target === backdrop) backdrop.remove(); });
   layer.appendChild(backdrop);
   if (onOpen) onOpen(body, backdrop);
+  activateAccessibleModal(backdrop);
   return backdrop;
 }
 
@@ -138,6 +141,8 @@ function editPointProperties() {
       input.type = 'text';
       input.inputMode = 'decimal';
       input.value = value;
+      input.id = 'point-property-' + key;
+      lbl.htmlFor = input.id;
       row.appendChild(lbl); row.appendChild(input);
       body.appendChild(row);
       inputs[key] = input;
@@ -154,7 +159,7 @@ function editPointProperties() {
         const valR = parseFloat(inputs.radius.value);
         const valC = parseFloat(inputs.camber.value);
         const valS = parseInt(inputs.segments.value);
-        if ([valX, valY, valZ, valR, valC, valS].some(isNaN)) throw new Error();
+        if (![valX, valY, valZ, valR, valC, valS].every(Number.isFinite)) throw new Error();
 
         const dx = valX - p.x, dy = valY - p.y, dz = valZ - p.z;
         saveToHistory();
@@ -329,7 +334,7 @@ function showCreditsWindow() {
     web.className = 'credits-text';
     web.style.color = 'var(--grey)';
     web.textContent =
-      'TLC+ Web v1.3.3 (this page):\n' +
+      'TLC+ Web v1.3.4 (this page):\n' +
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
       '  \u2022 Based on desktop release v1.3.0.\n' +
@@ -345,13 +350,14 @@ function showCreditsWindow() {
 let openMenuBtn = null;
 let openSubMenu = null;
 function closeSubMenu() {
-  if (openSubMenu) { openSubMenu.remove(); openSubMenu = null; }
+  if (openSubMenu) { openSubMenu._anchor?.setAttribute('aria-expanded', 'false'); openSubMenu.remove(); openSubMenu = null; }
 }
 
 function closeMenus() {
   closeSubMenu();
   document.querySelectorAll('.dropdown-menu').forEach(m => m.remove());
   document.querySelectorAll('.tb-menu-btn.open').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('[aria-haspopup="menu"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
   openMenuBtn = null;
 }
 
@@ -362,9 +368,11 @@ function openSubMenuFor(anchorItem, children) {
   closeSubMenu();
   const sub = document.createElement('div');
   sub.className = 'dropdown-menu submenu';
+  sub.setAttribute('role', 'menu'); sub.setAttribute('aria-label', anchorItem.textContent.trim());
   for (const child of children) {
     const btn = document.createElement('button');
     btn.className = 'menu-item sub-item';
+    btn.setAttribute('role', 'menuitem');
     const chk = document.createElement('span');
     chk.className = 'menu-check';
     chk.textContent = child.check ? '\u2713' : '';
@@ -372,7 +380,9 @@ function openSubMenuFor(anchorItem, children) {
     btn.appendChild(document.createTextNode(child.label));
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
+      const owner = openMenuBtn;
       closeMenus();
+      owner?.focus();
       child.action();
     });
     sub.appendChild(btn);
@@ -388,6 +398,7 @@ function openSubMenuFor(anchorItem, children) {
   sub.style.top = top + 'px';
   sub._anchor = anchorItem;
   openSubMenu = sub;
+  anchorItem.setAttribute('aria-expanded', 'true');
 }
 
 function showMenu(anchorBtn, items) {
@@ -395,6 +406,7 @@ function showMenu(anchorBtn, items) {
   closeMenus();
   const menu = document.createElement('div');
   menu.className = 'dropdown-menu';
+  menu.setAttribute('role', 'menu'); menu.setAttribute('aria-label', anchorBtn.textContent.trim());
   for (const item of items) {
     if (item === '-') {
       const sep = document.createElement('div');
@@ -412,6 +424,7 @@ function showMenu(anchorBtn, items) {
     if (item.children) {
       const btn = document.createElement('button');
       btn.className = 'menu-item has-submenu';
+      btn.setAttribute('role', 'menuitem'); btn.setAttribute('aria-haspopup', 'menu'); btn.setAttribute('aria-expanded', 'false');
       btn.appendChild(document.createTextNode(item.label));
       const arrow = document.createElement('span');
       arrow.className = 'menu-arrow';
@@ -428,10 +441,13 @@ function showMenu(anchorBtn, items) {
     }
     const btn = document.createElement('button');
     btn.className = 'menu-item' + (item.danger ? ' danger' : '');
+    btn.setAttribute('role', 'menuitem');
     btn.textContent = item.label;
     btn.addEventListener('mouseenter', closeSubMenu);
     btn.addEventListener('click', () => {
+      const owner = openMenuBtn;
       closeMenus();
+      owner?.focus();
       item.action();
     });
     menu.appendChild(btn);
@@ -441,6 +457,7 @@ function showMenu(anchorBtn, items) {
   menu.style.top = rect.bottom + 'px';
   document.getElementById('menu-layer').appendChild(menu);
   anchorBtn.classList.add('open');
+  anchorBtn.setAttribute('aria-expanded', 'true');
   openMenuBtn = anchorBtn;
 }
 
@@ -479,6 +496,7 @@ const MENU_BUILDERS = {
     ];
   },
   edit: () => [
+    { label: 'Track points (keyboard editor)', action: showTrackPointsWindow },
     { label: tr('Select All') + ' (A)', action: selectAll },
     { label: tr('Deselect') + ' (Esc)', action: escapeKey },
     '-',
@@ -494,8 +512,12 @@ const MENU_BUILDERS = {
     { label: tr('Controls') + ' (PC)', action: showHelpWindow },
     { label: tr('Controls (Mobile)'), action: showMobileHelp },
     { label: tr('Credits'), action: showCreditsWindow },
+    { label: 'Privacy & browser storage', action: () => window.open('legal.html#privacy', '_blank', 'noopener,noreferrer') },
+    { label: 'Terms of use', action: () => window.open('legal.html#terms', '_blank', 'noopener,noreferrer') },
+    { label: 'Accessibility', action: () => window.open('legal.html#accessibility', '_blank', 'noopener,noreferrer') },
+    { label: 'Storage settings', action: () => window.TLCPrivacy.showNotice() },
     '-',
-    { label: 'TLC+ on GitHub \u2197', action: () => window.open('https://github.com/daydrive7/track-layout-creator-plus', '_blank') },
+    { label: 'TLC+ on GitHub \u2197', action: () => window.open('https://github.com/daydrive7/tlc-plus-web', '_blank', 'noopener,noreferrer') },
   ],
 };
 
@@ -524,6 +546,7 @@ function setLanguage(code) {
 function applyLanguageToDom() {
   const lang = (window.TLC_LOCALES || {})[CURRENT_LANG];
   if (!lang) return;
+  document.documentElement.lang = CURRENT_LANG;
   const translateText = (el) => {
     const raw = el.dataset.origText || el.textContent.trim();
     if (!raw) return;
@@ -543,6 +566,7 @@ function applyLanguageToDom() {
   document.querySelectorAll('#tab-bar .tab-btn, .sec-label, .slider-row > label, .check-row label, .styled-btn, .radio-row-group label, #stats-card .stat-label, .sidebar-toggle-btn').forEach(translateText);
   document.querySelectorAll('.tb-menu-btn').forEach(translateText);
   closeMenus();
+  refreshAccessibleLabels();
 }
 
 /* ------------------------------------------------------------------ */
@@ -760,6 +784,7 @@ function vaultSaveDialog() {
     input.type = 'text';
     input.className = 'vault-input';
     input.placeholder = tr('Track name');
+    input.setAttribute('aria-label', tr('Track name'));
     input.maxLength = 60;
     body.appendChild(input);
 
@@ -803,7 +828,8 @@ function vaultSaveDialog() {
       const list = document.createElement('div');
       list.className = 'vault-list';
       for (const name of names) {
-        const row = document.createElement('div');
+        const row = document.createElement('button');
+        row.type = 'button';
         row.className = 'vault-row';
         row.title = tr('Click to use this name');
         const info = document.createElement('div');
@@ -884,10 +910,12 @@ function vaultLoadDialog() {
       const loadBtn = document.createElement('button');
       loadBtn.className = 'vault-btn';
       loadBtn.textContent = tr('Load');
+      loadBtn.setAttribute('aria-label', tr('Load') + ' ' + name);
       loadBtn.addEventListener('click', () => { backdrop.remove(); vaultLoadTrack(name); });
       const delBtn = document.createElement('button');
       delBtn.className = 'vault-btn danger';
       delBtn.textContent = tr('Delete');
+      delBtn.setAttribute('aria-label', tr('Delete') + ' ' + name);
       delBtn.addEventListener('click', async () => {
         const i = await messageBox(tr('Delete track'),
           '"' + name + '" ' + tr('will be deleted from browser storage.'),
@@ -1248,6 +1276,8 @@ function updatePitUI() {
 function switchSidebarTab(tabName) {
   document.querySelectorAll('#tab-bar .tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
+    btn.setAttribute('aria-selected', String(btn.dataset.tab === tabName));
+    btn.tabIndex = btn.dataset.tab === tabName ? 0 : -1;
   });
   document.querySelectorAll('.sidebar-tab').forEach(tab => {
     tab.classList.toggle('hidden', tab.id !== 'tab-' + tabName);
@@ -1428,7 +1458,7 @@ function initWarningFlasher() {
   setInterval(() => {
     // Only re-render while warnings actually exist (the original just
     // recolours items; we redraw the track layer — keep it idle otherwise).
-    if (!hasWarnings) return;
+    if (!hasWarnings || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     warningFlash = !warningFlash;
     trackChange();
   }, 600);
@@ -1465,6 +1495,8 @@ function initApp() {
   initWarningFlasher();
   bindCanvasEvents();
   bindKeyboard();
+  initAccessibility();
+  window.addEventListener('tlcp-storage-change', event => { if (event.detail.preferences) saveConfig(); });
 
   window.addEventListener('resize', () => { sizeCanvases(); displayChange(); });
 

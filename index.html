@@ -3,19 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <title>TLC+ Web — Track Layout Creator</title>
 <meta name="description" content="TLC+ Web — Track Layout Creator + web port. Design race track layouts and export TED files. MIT-licensed port of the desktop tool by eran0004 &amp; daydrive7.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E1E1E'/%3E%3Cpath d='M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008' fill='none' stroke='%2364D2FF' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=1.3.3">
+<link rel="stylesheet" href="css/style.css?v=1.3.4">
+<link rel="stylesheet" href="css/privacy.css?v=1.3.4">
 </head>
 <body>
+<a class="skip-link" href="#main-canvas">Skip to track canvas</a>
+<a class="skip-link" href="#btn-track-points">Skip to track point editor</a>
 
 <!-- Splash screen -->
 <div id="splash">
     <div class="splash-inner">
       <svg viewBox="0 0 32 32" class="splash-icon" aria-hidden="true"><path d="M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
       <div class="splash-name">TLC+ Web</div>
-      <div class="splash-version">Web v1.3.3 &middot; desktop v1.3.0</div>
+      <div class="splash-version">Web v1.3.4 &middot; desktop v1.3.0</div>
     </div>
 </div>
 
@@ -33,13 +37,13 @@
       <button class="tb-menu-btn" id="mb-theme" data-menu="theme">Theme</button>
       <button class="tb-menu-btn" id="mb-help" data-menu="help">Help</button>
     </nav>
-    <span class="tb-version" title="Based on desktop release v1.3.0">Web v1.3.3</span>
+    <span class="tb-version" title="Based on desktop release v1.3.0">Web v1.3.4</span>
   </header>
 
   <!-- Dropdown menus -->
   <div id="menu-layer"></div>
 
-  <div id="main">
+  <main id="main">
 
     <!-- Left sidebar -->
     <aside id="left-panel" aria-label="Settings sidebar">
@@ -196,9 +200,10 @@
     <!-- Right panel -->
     <div id="right-panel">
       <div id="canvas-area">
-        <canvas id="ruler-north" class="ruler-north" height="24"></canvas>
-        <canvas id="ruler-west" class="ruler-west" width="24"></canvas>
-        <canvas id="main-canvas"></canvas>
+        <canvas id="ruler-north" class="ruler-north" height="24" aria-hidden="true"></canvas>
+        <canvas id="ruler-west" class="ruler-west" width="24" aria-hidden="true"></canvas>
+        <canvas id="main-canvas" tabindex="0" aria-label="Track layout editor" aria-describedby="canvas-access-help">Visual track layout. Use Edit → Track points for coordinate-based editing.</canvas>
+        <p id="canvas-access-help" class="sr-only">Use Edit → Track points, or the Track points button below, to inspect, add and edit points without dragging. While the canvas has focus, arrows move selected points; Enter edits them and Delete removes them. Help lists further shortcuts.</p>
 
         <!-- Floating toolbar -->
         <div id="toolbar" role="toolbar" aria-label="Canvas tools">
@@ -243,11 +248,18 @@
       <div id="elev-splitter" title="Drag to resize the elevation graph"></div>
 
       <div id="nav-area">
-        <canvas id="nav-ruler" class="nav-ruler" width="36"></canvas>
-        <canvas id="nav-canvas"></canvas>
+        <canvas id="nav-ruler" class="nav-ruler" width="36" aria-hidden="true"></canvas>
+        <canvas id="nav-canvas" role="img" aria-label="Visual elevation profile">Visual track elevation profile. Point elevations can be inspected in Edit → Track points.</canvas>
       </div>
     </div>
-  </div>
+  </main>
+  <footer class="app-policy-links" lang="en" aria-label="Project information and storage">
+    <button type="button" id="btn-track-points">Track points</button>
+    <a href="legal.html#privacy" target="_blank" rel="noopener noreferrer">Privacy & storage</a>
+    <button type="button" data-storage-settings>Storage settings</button>
+    <a href="legal.html#terms" target="_blank" rel="noopener noreferrer">Terms</a>
+    <a href="legal.html#accessibility" target="_blank" rel="noopener noreferrer">Accessibility</a>
+  </footer>
 </div>
 
 <!-- Tooltip -->
@@ -262,22 +274,24 @@
 <!-- Hidden file inputs -->
 <input type="file" id="file-input" class="hidden">
 
-<script src="js/locales.js?v=1.3.3"></script>
-<script src="js/geometry.js?v=1.3.3"></script>
-<script src="js/heightmap.js?v=1.3.3"></script>
-<script src="js/ted.js?v=1.3.3"></script>
-<script src="js/decoration-data.js?v=1.3.3"></script>
-<script src="js/decoration-icons.js?v=1.3.3"></script>
-<script src="js/construct.js?v=1.3.3"></script>
-<script src="js/trace.js?v=1.3.3"></script>
-<script src="js/generators.js?v=1.3.3"></script>
-<script src="js/isoview.js?v=1.3.3"></script>
-<script src="js/app.js?v=1.3.3"></script>
-<script src="js/interact.js?v=1.3.3"></script>
-<script src="js/decorations.js?v=1.3.3"></script>
-<script src="js/path-trace.js?v=1.3.3"></script>
-<script src="js/project.js?v=1.3.3"></script>
-<script src="js/mobile.js?v=1.3.3"></script>
-<script src="js/ui.js?v=1.3.3"></script>
+<script src="js/privacy.js?v=1.3.4"></script>
+<script src="js/accessibility.js?v=1.3.4"></script>
+<script src="js/locales.js?v=1.3.4"></script>
+<script src="js/geometry.js?v=1.3.4"></script>
+<script src="js/heightmap.js?v=1.3.4"></script>
+<script src="js/ted.js?v=1.3.4"></script>
+<script src="js/decoration-data.js?v=1.3.4"></script>
+<script src="js/decoration-icons.js?v=1.3.4"></script>
+<script src="js/construct.js?v=1.3.4"></script>
+<script src="js/trace.js?v=1.3.4"></script>
+<script src="js/generators.js?v=1.3.4"></script>
+<script src="js/isoview.js?v=1.3.4"></script>
+<script src="js/app.js?v=1.3.4"></script>
+<script src="js/interact.js?v=1.3.4"></script>
+<script src="js/decorations.js?v=1.3.4"></script>
+<script src="js/path-trace.js?v=1.3.4"></script>
+<script src="js/project.js?v=1.3.4"></script>
+<script src="js/mobile.js?v=1.3.4"></script>
+<script src="js/ui.js?v=1.3.4"></script>
 </body>
 </html>

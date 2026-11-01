@@ -251,6 +251,7 @@ function applyTheme() {
 /* Config persistence (localStorage equivalent of config.json)       */
 /* ------------------------------------------------------------------ */
 function saveConfig() {
+  if (!window.TLCPrivacy?.allowed()) return;
   try {
     const cfg = {
       theme: S.theme,
@@ -270,6 +271,7 @@ function saveConfig() {
 }
 
 function loadConfig() {
+  if (!window.TLCPrivacy?.allowed()) return;
   try {
     const raw = localStorage.getItem('tlcp_config');
     if (!raw) return;

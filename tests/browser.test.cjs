@@ -20,6 +20,7 @@ let server,browser;
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  function watch(p){p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'||m.type()==='warning')errors.push(m.text());});}
  watch(page);await page.goto(base+'/');await page.waitForFunction(()=>S.heightMap&&document.getElementById('app').classList.contains('hidden')===false);await page.waitForTimeout(800);
+ await page.getByRole('button',{name:'Use without remembered settings',exact:true}).click();
  await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
  await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
  async function checkPalette(p){
@@ -58,6 +59,7 @@ let server,browser;
  await page.evaluate(()=>setLanguage('en'));
  const mobile=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});watch(mobile);await mobile.goto(base+'/');await mobile.waitForFunction(()=>!!S.heightMap);await mobile.waitForTimeout(800);
  assert.equal(await mobile.evaluate(()=>S.optimizeInteraction),false,'PDM must start disabled');
+ await mobile.getByRole('button',{name:'Use without remembered settings',exact:true}).click();
  const touch=await mobile.context().newCDPSession(mobile);
  async function event(type,points){await touch.send('Input.dispatchTouchEvent',{type,touchPoints:points.map((p,i)=>({x:p[0],y:p[1],id:i+1,radiusX:8,radiusY:8,force:1}))});}
  async function tapPoint(p){await event('touchStart',[p]);await event('touchEnd',[]);await mobile.waitForTimeout(50);}
@@ -139,6 +141,7 @@ let server,browser;
  await mobile.click('[data-mobile="fit"]');
  await mobile.screenshot({path:path.join(results,'mobile-landscape.png')});
  await mobile.click('#btn-toggle-sidebar');await mobile.click('[data-tab="map"]');
+ await mobile.evaluate(()=>TLCPrivacy.choose(true));
  const pdm=mobile.locator('.check-row[data-var="optimizeInteraction"] input');await pdm.check();
  assert.equal(await mobile.evaluate(()=>JSON.parse(localStorage.getItem('tlcp_config')).optimize_interaction),true,'PDM opt-in was not saved');
  await pdm.uncheck();await mobile.reload();await mobile.waitForFunction(()=>!!S.heightMap);assert.equal(await mobile.evaluate(()=>S.optimizeInteraction),false,'PDM opt-out did not persist');

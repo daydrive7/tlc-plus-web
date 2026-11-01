@@ -10,6 +10,10 @@ its SHA-256 and the source file hashes used for this update.
 
 **[Open TLC+ Web](https://daydrive7.github.io/tlc-plus-web/)**
 
+### v1.3.4 privacy and accessibility candidate
+
+Preferences are remembered only after an explicit choice. Editing and exporting work without this choice; requested browser track saves are independent. The editor links to [privacy, browser storage, terms and accessibility information](legal.html). No analytics, advertising or file-upload service is included. Use Edit → Track points for form-based point editing. See the [changelog](CHANGELOG.md) and [maintainer release review](docs/v1.3.4-release-review.md); legal identity, provider arrangements and third-party asset permissions still need review before the final policy release.
+
 ## Features
 
 ### Track editing
@@ -199,7 +203,7 @@ they are loaded on demand the first time a scenery is selected.
 ## Credits & license
 
 - Original creator for the original tool (TLC): eran0004 from GTPlanet, original creator of the improved tool (TLC+): daydrive7 from TikTok, and Discord.
-- **TLC+ Web v1.3.3** (this port) is derived from that MIT-licensed source
+- **TLC+ Web v1.3.4** (this port) is derived from that MIT-licensed source
   and is distributed under the same **MIT License** (see `LICENSE`).
 
 Gran Turismo, Gran Turismo 6, and the Track Path Editor app are products of Polyphony

@@ -51,9 +51,10 @@ jobs:
       - name: Stage static application
         run: |
           mkdir _site
-          cp index.html LICENSE _site/
+          cp index.html legal.html LICENSE _site/
           cp -r css js maps assets _site/
           node scripts/version-assets.cjs _site/index.html
+          node scripts/version-assets.cjs _site/legal.html
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3

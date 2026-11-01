@@ -780,6 +780,7 @@ function setToolMode(mode) {
   toolMode = mode;
   document.querySelectorAll('#toolbar .tool-btn[data-tool]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tool === mode);
+    btn.setAttribute('aria-pressed', String(btn.dataset.tool === mode));
   });
   polygonChange();
 }
@@ -799,6 +800,7 @@ function bindCanvasEvents() {
 
   canvas.addEventListener('mousedown', (e) => {
     e.preventDefault();
+    canvas.focus({preventScroll: true});
     const [mx, my] = localCoords(e);
     if (e.button === 0) {
       if (e.shiftKey && toolMode !== 'decorate') { shiftLeftClick(mx, my); return; }
@@ -884,6 +886,8 @@ function bindKeyboard() {
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
     // ignore app shortcuts while a modal or the isometric view is open
     if (document.querySelector('.modal-window') || document.querySelector('.iso-overlay')) return;
+    // Do not steal arrows/Enter or single-letter keys from page controls.
+    if (e.target.closest('button, a, [role="tab"], [role="menu"], [role="button"], [data-storage-notice]')) return;
 
     if (e.ctrlKey || e.metaKey) {
       switch (e.key.toLowerCase()) {

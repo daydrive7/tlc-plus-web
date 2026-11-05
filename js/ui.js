@@ -334,7 +334,7 @@ function showCreditsWindow() {
     web.className = 'credits-text';
     web.style.color = 'var(--grey)';
     web.textContent =
-      'TLC+ Web v1.3.4 (this page):\n' +
+      'TLC+ Web v1.3.5 (this page):\n' +
       '  \u2022 Web port of the MIT-licensed desktop tool \u2014 same geometry\n' +
       '    engine, TED exporter and terrain data, rebuilt for the browser.\n' +
       '  \u2022 Based on desktop release v1.3.0.\n' +
@@ -483,6 +483,7 @@ const MENU_BUILDERS = {
       { label: tr('Import TED'), action: importTedEditable },
       { label: tr('Export polygon'), action: exportPolygonFile },
       { label: tr('Export to TED'), action: exportTEDFile },
+      { label: tr('Edit TED road sections…'), action: () => window.TLCRoadSections.open() },
       '-',
       { label: tr('Save screenshot (PNG)'), action: exportScreen },
       { label: tr('Draw isometric view'), action: drawIsoMap },
@@ -574,8 +575,8 @@ function applyLanguageToDom() {
 /* ------------------------------------------------------------------ */
 async function switchScenery(index) {
   if (index === S.sceneryindex) return;
-  if (decorations.length && await messageBox(tr('Decorations'), tr('Switching scenery removes all placed decorations. Continue?'), [tr('Yes'), tr('No')]) !== 0) return;
-  saveToHistory(); decorations = []; selectedDeco = null;
+  if ((decorations.length||roadPlacements.length) && await messageBox(tr('Scenery'), tr('Switching scenery removes all placed decorations and road types. Continue?'), [tr('Yes'), tr('No')]) !== 0) return;
+  saveToHistory(); decorations = []; selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
   S.sceneryindex = index;
   refreshDecorationPalette();
   getHeightmap(index).then((hm) => {
@@ -664,7 +665,7 @@ function loadTrackFile() {
       }
       saveToHistory();
       polygon = parsed.polygon;
-      decorations = parsed.decorations || []; selectedDeco = null;
+      decorations = parsed.decorations || []; selectedDeco = null;roadPlacements=parsed.roadPlacements||[];selectedRoadPlacement=null;
       Object.assign(S, parsed.state);
       applyTheme(); refreshDecorationPalette();
       selectedPoints = [];
@@ -687,7 +688,7 @@ function importPolygonFile() {
     const raw = parsePolygonCSV(res.content);
     if (!raw.length) { messageBox(tr('Error'), tr('Could not import polygon.')); return; }
     saveToHistory();
-    decorations = []; selectedDeco = null;
+    decorations = []; selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
     polygon = raw.map(pt => makeCoordinate(pt[0], pt[1], pt[2] !== undefined ? pt[2] : 0,
       pt[3] !== undefined ? pt[3] : 90, pt[4] !== undefined ? pt[4] : -1,
       pt[5] !== undefined ? parseInt(pt[5]) : 0));
@@ -862,7 +863,7 @@ function vaultLoadTrack(name) {
     }
     saveToHistory();
     polygon = parsed.polygon;
-    decorations = parsed.decorations || []; selectedDeco = null;
+    decorations = parsed.decorations || []; selectedDeco = null;roadPlacements=parsed.roadPlacements||[];selectedRoadPlacement=null;
     Object.assign(S, parsed.state);
     applyTheme(); refreshDecorationPalette();
     selectedPoints = [];
@@ -955,7 +956,7 @@ function importTedEditable() {
         S.circuit = !!ted.header['isloopcourse'][3];
         S.sceneryindex = ted.header['sceneryindex'][3];
         S.roadWidth = ted.header['roadwidth'][3] - roadWidthOffset;
-        decorations = importDecorations(ted); selectedDeco = null;
+        decorations = importDecorations(ted); selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
         refreshDecorationPalette();
         syncSidebarControls();
         loadHeightMap(false).then(() => {
@@ -1067,7 +1068,7 @@ function runGenerator(style) {
   saveToHistory();
   const result = generateMathTrack(style);
   polygon = result.polygon;
-  decorations = []; selectedDeco = null;
+  decorations = []; selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
   S.circuit = result.circuit;
   selectedPoints = [];
   syncSidebarControls();
@@ -1080,7 +1081,7 @@ function runRandomLayout() {
   saveToHistory();
   const result = generateRandomLayout();
   polygon = result.polygon;
-  decorations = []; selectedDeco = null;
+  decorations = []; selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
   S.circuit = result.circuit;
   selectedPoints = [];
   syncSidebarControls();
@@ -1098,7 +1099,7 @@ function runImageTrace() {
         const finalPoints = traceImageToTrack(img, 1000, mode);
         saveToHistory();
         polygon = finalPoints;
-        decorations = []; selectedDeco = null;
+        decorations = []; selectedDeco = null;roadPlacements=[];selectedRoadPlacement=null;
         selectedPoints = [];
         S.circuit = true;
         syncSidebarControls();
@@ -1485,6 +1486,7 @@ function initApp() {
 
   initSidebar();
   initDecorations();
+  initRoadTypes();
   document.getElementById('btn-trace-gps').addEventListener('click', runGPSTrace);
   applyViewVisibility();
   initMenus();

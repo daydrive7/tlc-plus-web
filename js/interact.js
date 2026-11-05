@@ -341,6 +341,7 @@ function getLineHit(mx, my) {
 }
 
 function leftClick(mx, my, shift, ctrl) {
+  if (toolMode === 'road') { roadPlacementClick(mx,my); return; }
   if (toolMode === 'decorate') { decoLeftClick(mx, my); return; }
   void ctrl;
   saveToHistory();
@@ -402,6 +403,7 @@ function shiftLeftClick(mx, my) {
 }
 
 function b1Motion(mx, my) {
+  if (toolMode === 'road') { roadPlacementMotion(mx,my); return; }
   if (toolMode === 'decorate') { decoDragMotion(mx, my); return; }
   interacting = true;
 
@@ -461,6 +463,7 @@ function b1Rotating(mx, my) {
 }
 
 function b1Release() {
+  if (toolMode === 'road') { interacting=false;roadPlacementRelease();return; }
   if (toolMode === 'decorate') { decoDragEnd(); return; }
   interacting = false;
   if (toolMode === 'pan') canvasChange();
@@ -475,6 +478,7 @@ function b1Release() {
 }
 
 function rightClick(mx, my) {
+  if(toolMode==='road'){if(deleteRoadPlacement(roadPlacementAt(mx,my))){panMode=false;return;}panMode=true;mouseLocation={x:mx,y:my};return;}
   if (toolMode === 'decorate' && decoDeleteAt(mx, my)) { panMode = false; return; }
   if (toolMode === 'decorate') { panMode = true; mouseLocation = {x:mx,y:my}; return; }
   saveToHistory();
@@ -489,7 +493,7 @@ function rightClick(mx, my) {
 }
 
 function b3Motion(mx, my) {
-  if (toolMode === 'decorate' && !panMode) return;
+  if ((toolMode === 'decorate'||toolMode==='road') && !panMode) return;
   interacting = true;
   if (!panMode) {
     if (toolMode === 'camber') changeCamber(my);
@@ -778,6 +782,7 @@ function mouseWheelScroll(mx, my, deltaY) {
 
 function setToolMode(mode) {
   toolMode = mode;
+  if(typeof refreshRoadTypeControls==='function')refreshRoadTypeControls();
   document.querySelectorAll('#toolbar .tool-btn[data-tool]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tool === mode);
     btn.setAttribute('aria-pressed', String(btn.dataset.tool === mode));
@@ -899,6 +904,7 @@ function bindKeyboard() {
       return;
     }
 
+    if(toolMode==='road'){if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();deleteRoadPlacement(selectedRoadPlacement);return;}if(e.key==='Escape'){selectedRoadPlacement=null;refreshRoadTypeControls();displayChange();return;}}
     if (toolMode === 'decorate') {
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteDecoration(); return; }
       if (e.key === 'Escape') { selectedDeco = null; displayChange(); return; }

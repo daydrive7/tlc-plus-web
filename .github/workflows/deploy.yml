@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: "24"
       - name: Verify desktop parity, persistence, and JavaScript syntax
-        run: node tests/parity.test.cjs
+        run: npm test
       - name: Install browser test dependencies
         run: npm ci
       - name: Install Chromium

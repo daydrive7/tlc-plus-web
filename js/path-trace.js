@@ -56,7 +56,7 @@ async function runGPSTrace(){
   try{
     const path=res.name.toLowerCase().endsWith('.gpx')?parseGPX(res.content):parseCSVPath(res.content);
     const result=traceProjectedPath(path,S.traceAccuracy);
-    saveToHistory();polygon=result.polygon;S.circuit=result.circuit;decorations=[];selectedDeco=null;selectedPoints=[];
+    saveToHistory();polygon=result.polygon;S.circuit=result.circuit;decorations=[];selectedDeco=null;roadPlacements=[];selectedRoadPlacement=null;selectedPoints=[];
     syncSidebarControls();displayChange();centerOnTrack();toast(tr('Trace complete')+': '+polygon.length+' '+tr('nodes'),'success');
   }catch(e){messageBox(tr('Error'),e.message);}
 }

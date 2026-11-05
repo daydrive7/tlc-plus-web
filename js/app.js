@@ -147,7 +147,7 @@ function requestRedraw(parts) {
         dirty.canvas = dirty.polygon = dirty.track = false;
         try { drawCanvas(); } catch (e) { console.warn('draw error in canvas:', e); }
         try { drawPolygon(polygon); } catch (e) { console.warn('draw error in polygon:', e); }
-        try { drawTrack(polygon); drawDecorations(); updateMobileActions(); } catch (e) { console.warn('draw error in track:', e); }
+        try { drawTrack(polygon); drawDecorations(); if(typeof drawRoadPlacements==='function')drawRoadPlacements(); updateMobileActions(); } catch (e) { console.warn('draw error in track:', e); }
       }
       if (dirty.nav) {
         dirty.nav = false;
@@ -397,11 +397,12 @@ function sizeCanvases() {
 /* ------------------------------------------------------------------ */
 function snapshotPolygon() {
   return {polygon: polygon.map(p => [p.x,p.y,p.z,p.radius,p.camber,p.segments]),
-    decorations: decorations.map(d => ({...d})), scenery: S.sceneryindex, circuit: S.circuit};
+    decorations: decorations.map(d => ({...d})), roadPlacements: typeof roadPlacements==='undefined'?[]:roadPlacements.map(p=>({...p})), scenery: S.sceneryindex, circuit: S.circuit};
 }
 function restoreSnapshot(snap) {
   polygon = snap.polygon.map(v => makeCoordinate(...v));
   decorations = snap.decorations.map(d => ({...d}));
+  if(typeof roadPlacements!=='undefined'){roadPlacements=(snap.roadPlacements||[]).map(p=>({...p}));selectedRoadPlacement=null;refreshRoadTypeControls();}
   const changed = S.sceneryindex !== snap.scenery;
   S.sceneryindex = snap.scenery; S.circuit = snap.circuit;
   selectedPoints = []; selectedDeco = null;

@@ -868,7 +868,8 @@ function constructTEDData(polygon, S) {
   const HEIGHTS = heightPairs.map(h => h[1]);
   applyIncludeHeightLengths(BANKS, HEIGHTS);
   const CHECKPOINTS = constructCheckpoints(BANKS, S);
-  const ROADS = constructRoads(BANKS, S);
+  let ROADS = constructRoads(BANKS, S);
+  if(typeof roadPlacements!=='undefined'&&roadPlacements.length)ROADS=applyRoadPlacements(ROADS,BANKS,S,roadPlacements);
   const DECORATIONS = constructDecorations(BANKS, S);
 
   const HEADER = constructHeader(CPS, BANKS, HEIGHTS, CHECKPOINTS, ROADS, DECORATIONS, S);

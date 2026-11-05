@@ -10,6 +10,18 @@ its SHA-256 and the source file hashes used for this update.
 
 **[Open TLC+ Web](https://daydrive7.github.io/tlc-plus-web/)**
 
+### v1.3.5 road type spans
+
+**Geometry → Road types** places documented road meshes by clicking the track. Choose a type and X/Y orientation, equip **Place road type**, then click an ordinary road section. The complete nominal-length span is inserted, including the required ordered parts for forests, narrower roads, sand traps and other multipart types. Drag its square marker to move it; right-click or Delete removes it. Road placements participate in undo/redo and are retained in `.tlcw` projects and the browser track vault. TRK5 has no fields for these placements.
+
+The catalog contains 26 types across Andalusia, Eifel/Eifel Flat and Death Valley. Start/finish meshes and flagged special sections are protected. Overlapping spans and spans that no longer fit after a layout change are rejected rather than silently modifying start/finish roads. Export TED to use the road meshes in the game. The purple/orange editor highlight represents the assigned span; it is not a render of the in-game building.
+
+**File → Edit TED road sections…** also changes a documented single-piece type in existing TED records, retaining the section's original length and all unrelated bytes. Use the layout tool when the type needs its complete nominal span or a multipart chain. These edits are local to the browser; no track file is uploaded.
+
+Importing a TED as an editable polygon reconstructs its geometry and does not import original road-type spans. Use the exact TED editor to retain the source course's binary structure, or place new road types after importing the path.
+
+The source is the [GT6 UUID reference](https://github.com/daydrive7/GT6-TPE-UUID/blob/main/GT6_UUID_Reference.md), reconciled against the shipped TLC road codes. Its raw Eifel/Death Valley headings are interchanged, so assignment follows UUIDs and the original catalogs instead of headings. RailUnit flags are asset metadata, separate from the exported ROAD orientation flags. Restaurant/parking is an Andalusia road type (`B4CB0024E8474511`) with a 150 m nominal span; the supplied example's roughly 150.3 m records include elevation. In-game visual/physics validation remains pending; byte layout, chain order, range preservation, project persistence and browser interactions are tested.
+
 ### v1.3.4 privacy and accessibility candidate
 
 Preferences are remembered only after an explicit choice. Editing and exporting work without this choice; requested browser track saves are independent. The editor links to [privacy, browser storage, terms and accessibility information](legal.html). No analytics, advertising or file-upload service is included. Use Edit → Track points for form-based point editing. See the [changelog](CHANGELOG.md) and [maintainer release review](docs/v1.3.4-release-review.md); legal identity, provider arrangements and third-party asset permissions still need review before the final policy release.

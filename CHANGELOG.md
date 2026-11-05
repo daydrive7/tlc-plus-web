@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.5 — road type spans
+
+- Added a road type tool to place complete documented spans on the track, with drag/select/delete, orientation, undo/redo and project/vault persistence.
+- Added 26 curated road types for Andalusia, Eifel/Flat and Death Valley. Restaurant/parking uses the documented 150 m nominal road span. Multipart types preserve their complete ordered chain.
+- Protected start/finish road UUIDs and flags, rejected overlaps/out-of-range spans and preserved plan-to-height distance conversion.
+- Added exact existing-TED section UUID editing under File, with only documented single-piece types for the file's scenery. Original section lengths and unrelated bytes are preserved.
+- Added byte-preservation, placement/export, persistence and browser interaction tests. In-game appearance remains unverified. Python code is unchanged.
+
 ## 1.3.4 — privacy and accessibility (release candidate)
 
 - Add a linked privacy policy, cookie/browser-storage inventory and controls, terms of use, and accessibility information with a public project contact.

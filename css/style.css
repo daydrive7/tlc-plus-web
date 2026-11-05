@@ -696,3 +696,8 @@ button { font-family: inherit; }
   #mobile-sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; min-height: 48px; border-bottom: 1px solid var(--grey); }
   #mobile-sidebar-header button { min-width: 64px; min-height: 44px; background: var(--silver); color: var(--white); border: 1px solid var(--grey); border-radius: 4px; }
 }
+
+/* Road type spans share the layout tools, not the decoration palette. */
+.road-type-select{display:block;width:100%;box-sizing:border-box;margin:5px 0 8px;padding:5px;background:var(--silver);color:var(--white);border:1px solid var(--grey);font:inherit}.road-type-note{font-size:11px;color:var(--grey);line-height:1.4;margin:6px 0}.road-type-select option{padding:3px}
+
+.road-type-controls{padding:0 12px 8px}.road-type-controls .btn-row{flex-wrap:wrap}.road-type-controls .btn-row .styled-btn{flex:1 1 120px}

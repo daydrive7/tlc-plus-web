@@ -145,6 +145,7 @@ function decoDeleteAt(mx,my){const i=decorationHit(mx,my);if(i===null)return fal
 function flipDecorationSide(){if(selectedDeco===null)return;saveToHistory();const d=decorations[selectedDeco];d.side=d.side==='left'?'right':'left';delete d.rotation;displayChange();}
 function cycleDecorationVariant(){if(selectedDeco===null)return;const d=decorations[selectedDeco],vs=decorationVariants(S.sceneryindex,d.type,d.side,d.track);if(!vs.length)return;saveToHistory();d.uuid=vs[(vs.findIndex(v=>v.uuid===d.uuid)+1)%vs.length].uuid;delete d.length;delete d.rotation;displayChange();}
 function refreshDecorationPalette(){
+  if(typeof refreshRoadTypeControls==='function')refreshRoadTypeControls();
   const el=document.getElementById('deco-palette');if(!el)return;el.replaceChildren();
   const sc=decoScenery(S.sceneryindex),types=[...new Set(sc.variants.map(v=>v.type))].filter(t=>t!==17).sort((a,b)=>a-b);
   if(!types.includes(decoType))decoType=types[0];

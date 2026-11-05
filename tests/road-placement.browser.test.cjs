@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {chromium}=require('playwright');const root=path.join(__dirname,'..');let server,browser;
+(async()=>{
+ server=http.createServer((req,res)=>{const p=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));if(p!==root&&!p.startsWith(root+path.sep)){res.writeHead(403);return res.end();}const file=p===root?path.join(root,'index.html'):p;fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.css':'text/css','.svg':'image/svg+xml','.gif':'image/gif'})[path.extname(file)]||'application/octet-stream');res.end(data);});});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
+ browser=await chromium.launch({channel:process.env.TLC_BROWSER_CHANNEL||'chromium',headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.waitForFunction(()=>S.heightMap&&!document.getElementById('app').classList.contains('hidden'));await page.getByRole('button',{name:'Use without remembered settings',exact:true}).click();
+ await page.evaluate(async()=>{S.sceneryindex=3;await loadHeightMap(false);runGenerator('oval');refreshDecorationPalette();});await page.waitForFunction(()=>CPS.length>2&&trackLengthState.total>1400);
+ await page.selectOption('#road-type-select','andalusia-restaurant');await page.click('#road-type-equip');
+ async function position(distance){return page.evaluate(d=>{const p=distanceToCoords(CPS,d),rect=mainCanvas.getBoundingClientRect();return {x:rect.left+worldToScreenX(p[0]),y:rect.top+worldToScreenY(p[1])};},distance);}
+ let point=await position(1000);await page.mouse.click(point.x,point.y);await page.waitForFunction(()=>roadPlacements.length===1);
+ assert.equal(await page.evaluate(()=>roadPlacements[0].typeId),'andalusia-restaurant');assert.ok(Math.abs(await page.evaluate(()=>roadPlacements[0].start)-925)<1);
+ await page.keyboard.press('Control+z');await page.waitForFunction(()=>roadPlacements.length===0);await page.keyboard.press('Control+y');await page.waitForFunction(()=>roadPlacements.length===1);
+ point=await position(1000);const end=await position(1250);await page.mouse.move(point.x,point.y);await page.mouse.down();await page.mouse.move(end.x,end.y,{steps:12});await page.mouse.up();assert.ok(Math.abs(await page.evaluate(()=>roadPlacements[0].start)-1175)<6,'Drag did not move road span');
+ const state=await page.evaluate(()=>{const bytes=generateTedFile(constructTEDData(polygon,S)),parsed=new TEDTrackObject(bytes);return {count:parsed.roads.filter(r=>r.uuid===0xB4CB0024E8474511n).length,saved:parseProjectFile(makeWebProject(S,polygon,decorations)).roadPlacements};});assert.equal(state.count,1);assert.equal(state.saved.length,1);
+ await page.mouse.click(end.x,end.y,{button:'right'});await page.waitForFunction(()=>roadPlacements.length===0);await page.keyboard.press('Control+z');await page.waitForFunction(()=>roadPlacements.length===1);
+ const before=await page.evaluate(()=>JSON.stringify(polygon));await page.mouse.click(point.x,point.y);assert.equal(await page.evaluate(()=>JSON.stringify(polygon)),before,'Road tool edited control nodes');
+ // Full multipart spans are chosen as one option, not arbitrary UUID parts.
+ await page.evaluate(async()=>{roadPlacements=[];selectedRoadPlacement=null;S.sceneryindex=2;await loadHeightMap(false);refreshDecorationPalette();displayChange();});await page.selectOption('#road-type-select','eifel-sand-left');point=await position(1250);await page.mouse.click(point.x,point.y);await page.waitForFunction(()=>roadPlacements.length===1);
+ assert.equal(await page.evaluate(()=>{const type=roadTypeById(roadPlacements[0].typeId,2);return type.segments.length;}),3);
+ fs.mkdirSync(path.join(root,'test-results'),{recursive:true});await page.screenshot({path:path.join(root,'test-results/road-placement-v1.3.5.png'),fullPage:true});
+ const payload=await page.evaluate(()=>Array.from(new Uint8Array(generateTedFile(constructTEDData(polygon,S)))));
+ const chooser=page.waitForEvent('filechooser');await page.evaluate(()=>window.TLCRoadSections.open());await(await chooser).setFiles({name:'generated.ted',mimeType:'application/octet-stream',buffer:Buffer.from(payload)});await page.waitForSelector('dialog[open]');assert.ok(await page.locator('dialog select[aria-label="Road type"] option').count());await page.getByRole('button',{name:'Close',exact:true}).last().click();
+ assert.deepEqual(errors,[]);console.log('PASS: road type UI click/drag/delete, undo/redo, .tlcw persistence, TED export, multipart Eifel span, existing-TED editor and no canvas node edits');
+})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));});

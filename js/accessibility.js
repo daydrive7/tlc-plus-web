@@ -84,7 +84,7 @@ function initAccessibility() {
     else return;
     event.preventDefault(); switchSidebarTab(tabs[index].dataset.tab); tabs[index].focus();
   });
-  document.querySelectorAll('.tb-menu-btn').forEach(button => {
+  document.querySelectorAll('.tb-menu-btn[data-menu]').forEach(button => {
     button.setAttribute('aria-haspopup', 'menu'); button.setAttribute('aria-expanded', 'false');
   });
   document.addEventListener('keydown', event => {
@@ -100,7 +100,7 @@ function initAccessibility() {
       }
       return;
     }
-    const mainButton = event.target.closest('.tb-menu-btn');
+    const mainButton = event.target.closest('.tb-menu-btn[data-menu]');
     if (mainButton && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
       event.preventDefault();
       if (openMenuBtn !== mainButton) showMenu(mainButton, MENU_BUILDERS[mainButton.dataset.menu]());

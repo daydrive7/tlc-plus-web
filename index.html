@@ -28,16 +28,15 @@
   <!-- Custom title bar -->
   <header id="titlebar">
     <div class="tb-left">
-      <svg viewBox="0 0 32 32" class="tb-logo" aria-hidden="true"><path d="M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-      <span class="tb-title">TLC+ Web</span>
+      <span class="tb-title">TLC+</span>
     </div>
     <nav class="tb-menus" aria-label="Main menu">
       <button class="tb-menu-btn" id="mb-file" data-menu="file">File</button>
       <button class="tb-menu-btn" id="mb-edit" data-menu="edit">Edit</button>
-      <button class="tb-menu-btn" id="mb-theme" data-menu="theme">Theme</button>
+      <button class="tb-menu-btn" id="mb-scenery" data-menu="scenery">Scenery</button>
       <button class="tb-menu-btn" id="mb-help" data-menu="help">Help</button>
+      <a class="tb-menu-btn tb-updates" href="https://github.com/daydrive7/tlc-plus-web/commits/main/" target="_blank" rel="noopener noreferrer">Check for Updates</a>
     </nav>
-    <span class="tb-version" title="Based on desktop release v1.3.0">Web v1.3.5</span>
   </header>
 
   <!-- Dropdown menus -->
@@ -70,8 +69,6 @@
                data-tip="Set how much the elevation will be smoothed out"><label>Surface smoothing</label><input type="range"><input type="number" class="slider-val"></div>
 
           <div class="sec-label">TRACK SCALING &amp; FLAGS</div>
-          <div class="slider-row" data-min="2" data-max="10" data-res="1" data-var="sectorScale"
-               data-tip="Set the number of sectors for the track"><label>Number of sectors</label><input type="range"><input type="number" class="slider-val"></div>
           <div class="slider-row" data-min="0.5" data-max="2" data-res="0.1" data-var="roadBaseLen"
                data-tip="Set the scale of the [ROAD] data in the exported .ted file"><label>Road length factor</label><input type="range"><input type="number" class="slider-val"></div>
 
@@ -91,14 +88,21 @@
 
           <div class="sec-label">ROAD TYPES</div>
           <div class="road-type-controls">
-          <label for="road-type-select">Road type</label><select id="road-type-select" class="road-type-select"></select>
-          <label for="road-type-side">Orientation</label><select id="road-type-side" class="road-type-select"><option value="0">X (flag 0)</option><option value="1">Y (flag 1)</option></select>
-          <button type="button" class="styled-btn" id="road-type-equip" aria-pressed="false">Place road type</button>
-          <p class="road-type-note">Click the road to place the complete span. Drag its marker to move it. Start/finish pieces and overlaps are protected.</p>
-          <p class="road-type-note">Documented UUIDs; in-game appearance still needs verification.</p>
-          <label for="road-type-placements">Placed road spans</label><select id="road-type-placements" class="road-type-select" size="3"></select>
-          <div id="road-type-info" class="road-type-note" role="status" aria-live="polite"></div>
-          <div class="btn-row"><button type="button" class="styled-btn" id="road-type-delete">Delete selected road type</button><button type="button" class="styled-btn" id="road-type-clear">Clear road types</button></div>
+            <label class="sr-only" for="road-type-select">Road type</label>
+            <select id="road-type-select" class="road-type-select" aria-describedby="road-type-length"></select>
+            <div id="road-type-length" class="road-type-note"></div>
+            <p class="road-type-note">Complete road meshes. In-game appearance still needs verification.</p>
+            <div class="road-type-orientation"><label><input type="checkbox" id="road-type-side">Flip road orientation</label></div>
+            <button type="button" class="styled-btn" id="road-type-equip" aria-pressed="false">Place road type</button>
+            <button type="button" class="styled-btn" id="road-type-delete">Remove road type</button>
+            <button type="button" class="styled-btn" id="road-type-clear">Clear road types</button>
+            <p class="road-type-note">Click the road to place a complete span. Drag its marker to move it or right-click to remove it. Start/finish pieces are protected.</p>
+            <details id="road-type-manager" class="hidden">
+              <summary>Placed road spans</summary>
+              <label class="sr-only" for="road-type-placements">Select a placed road span</label>
+              <select id="road-type-placements" class="road-type-select" size="3"></select>
+            </details>
+            <div id="road-type-info" class="road-type-note" role="status" aria-live="polite"></div>
           </div>
 
           <div class="sec-label">MANUAL HEIGHT CONTROLS</div>
@@ -107,6 +111,10 @@
                data-tip="1.0 = Gradual climb spanning the entire segment.&#10;0.0 = Instant vertical jump at the end."><label>Ramp UP Transition (In)</label><input type="range"><input type="number" class="slider-val"></div>
           <div class="slider-row" data-min="0" data-max="1" data-res="0.05" data-var="manualHeightOut"
                data-tip="1.0 = Gradual descent spanning the entire segment.&#10;0.0 = Instant vertical drop at the start."><label>Ramp DOWN Transition (Out)</label><input type="range"><input type="number" class="slider-val"></div>
+
+          <div class="sec-label">SECTORS</div>
+          <div class="slider-row" data-min="2" data-max="10" data-res="1" data-var="sectorScale"
+               data-tip="Set the number of sectors for the track"><label>Number of sectors</label><input type="range"><input type="number" class="slider-val"></div>
 
           <div class="sec-label">OTHER TOOLS</div>
           <div class="btn-row">
@@ -248,17 +256,15 @@
           <button class="styled-btn sidebar-toggle-btn" id="btn-toggle-sidebar">Sidebar</button>
         </div>
 
-      </div>
-
-      <!-- Track status -->
-      <div id="stats-card">
-        <span class="stat-label">Scene:</span><span class="stat-value" id="stat-scenery">Eifel Flat</span>
-        <span class="stat-label">Length:</span><span class="stat-value" id="stat-length">--- m</span>
-        <span class="stat-label">Corners:</span><span class="stat-value" id="stat-corners">0</span>
+        <div id="stats-card">
+          <span><span class="stat-label">Scene:</span> <span id="stat-scenery">Eifel Flat</span></span>
+          <span><span class="stat-label">Length:</span> <span id="stat-length">--- m</span></span>
+          <span><span class="stat-label">Corners:</span> <span id="stat-corners">0</span></span>
+        </div>
       </div>
 
       <!-- Draggable splitter -->
-      <div id="elev-splitter" title="Drag to resize the elevation graph"><span class="elevation-label" aria-hidden="true">Elevation</span></div>
+      <div id="elev-splitter" title="Drag to resize the elevation graph"></div>
 
       <div id="nav-area">
         <canvas id="nav-ruler" class="nav-ruler" width="36" aria-hidden="true"></canvas>

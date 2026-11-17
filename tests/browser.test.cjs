@@ -21,6 +21,26 @@ let server,browser;
  function watch(p){p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'||m.type()==='warning')errors.push(m.text());});}
  watch(page);await page.goto(base+'/');await page.waitForFunction(()=>S.heightMap&&document.getElementById('app').classList.contains('hidden')===false);await page.waitForTimeout(800);
  await page.getByRole('button',{name:'Use without remembered settings',exact:true}).click();
+ const layout=await page.evaluate(()=>{
+  const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+  return {
+   sidebarSeam:rect('#canvas-area').left-rect('#left-panel').right,
+   elevationSeam:rect('#nav-area').top-rect('#canvas-area').bottom,
+   sliderWidth:rect('[data-var="roadWidth"] input[type="range"]').width,
+   palette: getComputedStyle(document.querySelector('#toolbar')).position,
+  };
+ });
+ assert.equal(layout.sidebarSeam,1);
+ assert.equal(layout.elevationSeam,1);
+ assert.ok(layout.sliderWidth>270,'Desktop geometry sliders should span the sidebar');
+ assert.equal(layout.palette,'absolute');
+ await page.click('#btn-toggle-sidebar');assert.equal(await page.locator('#sidebar-divider').isVisible(),false);
+ await page.click('#btn-toggle-sidebar');assert.equal(await page.locator('#sidebar-divider').isVisible(),true);
+ await page.locator('#elev-splitter').focus();
+ const elevationBefore=(await page.locator('#nav-area').boundingBox()).height;
+ await page.keyboard.press('ArrowUp');
+ assert.equal((await page.locator('#nav-area').boundingBox()).height,elevationBefore+10);
+ await page.keyboard.press('ArrowDown');
  await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
  await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
  async function checkPalette(p){

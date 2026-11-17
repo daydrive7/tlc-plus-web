@@ -199,17 +199,17 @@ function applyTheme() {
   THEME.ACCENT = accent;
   THEME.ACCENT_LIGHT = lightenHex(accent, 0.35);
   THEME.ACCENT_DARK = darkenHex(accent, 0.30);
-  THEME.CANVAS_BG = '#1a2029';
-  THEME.DESKTOP_BG = '#272f3b';
-  THEME.NAV_BG = '#171d26';
-  THEME.DARKER_SILVER = '#202731';
-  THEME.LIGHT_SILVER = '#323e4e';
-  THEME.SILVER = '#272f3b';
-  THEME.WHITE = '#e5eaf2';
-  THEME.GREY = '#a3afbf';
-  THEME.LABELTEXT = '#e5eaf2';
-  THEME.GRID_COLOR = '#2c3746';
-  THEME.GRID_LABEL = '#8e9eb2';
+  THEME.CANVAS_BG = '#242424';
+  THEME.DESKTOP_BG = '#2c2c2c';
+  THEME.NAV_BG = '#1e1e1e';
+  THEME.DARKER_SILVER = '#1e1e1e';
+  THEME.LIGHT_SILVER = '#3b3b3b';
+  THEME.SILVER = '#2c2c2c';
+  THEME.WHITE = '#e0e0e0';
+  THEME.GREY = '#929292';
+  THEME.LABELTEXT = '#e0e0e0';
+  THEME.GRID_COLOR = '#333333';
+  THEME.GRID_LABEL = '#929292';
   if (S.theme === 'Classic') {
     THEME.ACCENT_LIGHT = darkenHex(accent, 0.15);
     Object.assign(THEME, {CANVAS_BG: '#F5F5F5', DESKTOP_BG: '#EEEEEE', NAV_BG: '#FFFFFF',
@@ -239,8 +239,6 @@ function applyTheme() {
   root.style.setProperty('--accent', THEME.ACCENT);
   root.style.setProperty('--accent-light', THEME.ACCENT_LIGHT);
   root.style.setProperty('--accent-dark', THEME.ACCENT_DARK);
-  const titleBg = S.theme === 'Classic' ? lightenHex(THEME.ACCENT, 0.92) : darkenHex(THEME.ACCENT, 0.88);
-  root.style.setProperty('--titlebar-bg', titleBg);
 
   // redraw with new colours
   displayChange();
@@ -259,7 +257,7 @@ function saveConfig() {
       show_title: S.showTitle,
       optimize_interaction: S.optimizeInteraction,
       elev_height: document.getElementById('nav-area') ?
-        (Math.round(document.getElementById('nav-area').getBoundingClientRect().height) || parseFloat(document.getElementById('nav-area').style.flexBasis) || 160) : 160,
+        (Math.round(document.getElementById('nav-area').getBoundingClientRect().height) || parseFloat(document.getElementById('nav-area').style.flexBasis) || 80) : 80,
       language: CURRENT_LANG,
       accent_color: S.accentColor,
       show_proc_gen: S.showProcGen,

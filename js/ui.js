@@ -498,12 +498,16 @@ const MENU_BUILDERS = {
   },
   edit: () => [
     { label: 'Track points (keyboard editor)', action: showTrackPointsWindow },
+    '-',
+    { label: tr('Undo') + ' (Ctrl+Z)', action: undo },
+    { label: tr('Redo') + ' (Ctrl+Y)', action: redo },
+    '-',
     { label: tr('Select All') + ' (A)', action: selectAll },
     { label: tr('Deselect') + ' (Esc)', action: escapeKey },
     '-',
     { label: tr('Flip direction') + ' (F)', action: flipDirection },
   ],
-  theme: () => [
+  scenery: () => [
     { label: tr('Death Valley'), action: () => switchScenery(1) },
     { label: tr('Eifel'), action: () => switchScenery(2) },
     { label: tr('Andalusia'), action: () => switchScenery(3) },
@@ -564,7 +568,7 @@ function applyLanguageToDom() {
       if (textNodes.length) textNodes[textNodes.length - 1].textContent = ' ' + translated;
     }
   };
-  document.querySelectorAll('#tab-bar .tab-btn, .sec-label, .slider-row > label, .check-row label, .styled-btn, .radio-row-group label, #stats-card .stat-label, .sidebar-toggle-btn, .elevation-label').forEach(translateText);
+  document.querySelectorAll('#tab-bar .tab-btn, .sec-label, .slider-row > label, .check-row label, .road-type-orientation label, .styled-btn, .radio-row-group label, #stats-card .stat-label, .sidebar-toggle-btn').forEach(translateText);
   document.querySelectorAll('.tb-menu-btn').forEach(translateText);
   closeMenus();
   refreshAccessibleLabels();
@@ -1142,6 +1146,7 @@ function initSidebar() {
     function refresh() {
       const v = readVar();
       input.value = v;
+      row.style.setProperty('--slider-position', (100 * (input.valueAsNumber - min) / (max - min)) + '%');
       if (valEl && valEl.tagName === 'INPUT') valEl.value = formatSliderValue(v, res);
       else if (valEl) valEl.textContent = formatSliderValue(v, res);
     }
@@ -1149,9 +1154,7 @@ function initSidebar() {
       if (isNaN(v)) v = min;
       if (varName === 'pitOffset2') S.pitOffset = v;
       else S[varName] = v;
-      input.value = v;
-      if (valEl && valEl.tagName === 'INPUT') valEl.value = formatSliderValue(v, res);
-      else if (valEl) valEl.textContent = formatSliderValue(v, res);
+      refresh();
       navTerrainCache = null;
       if (varName === 'labelFontSize') { polygonChange(); trackChange(); }
       else if (varName === 'heightMapFidelity') canvasChange();
@@ -1252,8 +1255,7 @@ function initSidebar() {
 }
 
 function formatSliderValue(v, res) {
-  if (res >= 1) return String(Math.round(v));
-  return String(parseFloat(v.toFixed(2)));
+  return v.toFixed(res >= 1 ? 0 : res >= 0.1 ? 1 : 2);
 }
 
 function updatePitUI() {

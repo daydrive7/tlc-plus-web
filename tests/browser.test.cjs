@@ -41,10 +41,6 @@ let server,browser;
  await page.keyboard.press('ArrowUp');
  assert.equal((await page.locator('#nav-area').boundingBox()).height,elevationBefore+10);
  await page.keyboard.press('ArrowDown');
- await page.setViewportSize({width:1496,height:940});
- const preview=await page.screenshot({type:'jpeg',quality:70});
- for(const chunk of preview.toString('base64').match(/.{1,1400}/g))console.log('TLC_PREVIEW_CHUNK '+chunk);
- await page.setViewportSize({width:1440,height:1000});
  await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
  await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
  async function checkPalette(p){

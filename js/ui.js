@@ -497,10 +497,11 @@ const MENU_BUILDERS = {
     ];
   },
   edit: () => [
+    { label: 'Track points (keyboard editor)', action: showTrackPointsWindow },
+    '-',
     { label: tr('Undo') + ' (Ctrl+Z)', action: undo },
     { label: tr('Redo') + ' (Ctrl+Y)', action: redo },
     '-',
-    { label: 'Track points (keyboard editor)', action: showTrackPointsWindow },
     { label: tr('Select All') + ' (A)', action: selectAll },
     { label: tr('Deselect') + ' (Esc)', action: escapeKey },
     '-',

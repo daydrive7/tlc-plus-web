@@ -42,7 +42,7 @@ function roadPlacementClick(mx,my){
  const nearest=nearestDecorationPosition(mx,my),selector=document.getElementById('road-type-select');if(!nearest||!selector)return;
  const point=distanceToCoords(CPS,nearest.vpos);if(Math.hypot(worldToScreenX(point[0])-mx,worldToScreenY(point[1])-my)>30)return;
  const type=roadTypeById(selector.value,S.sceneryindex);if(!type)return;
- const placement={typeId:type.id,scenery:S.sceneryindex,start:nearest.vpos-roadTypeLength(type)/2,flag:Number(document.getElementById('road-type-side').value)};
+ const placement={typeId:type.id,scenery:S.sceneryindex,start:nearest.vpos-roadTypeLength(type)/2,flag:Number(document.getElementById('road-type-side').checked)};
  try{validateCurrentRoadPlacements([...roadPlacements,placement]);saveToHistory();roadPlacements.push(placement);selectedRoadPlacement=roadPlacements.length-1;refreshRoadTypeControls();displayChange();}
  catch(e){toast(tr(e.message),'warning');}
 }
@@ -61,16 +61,44 @@ function drawRoadPlacements(){
   const point=distanceToCoords(CPS,(p.start+end)/2),x=worldToScreenX(point[0]),y=worldToScreenY(point[1]);mainCtx.save();mainCtx.fillStyle=i===selectedRoadPlacement?'#ffb347':'#b36dff';mainCtx.strokeStyle='#111';mainCtx.lineWidth=1;mainCtx.beginPath();mainCtx.rect(x-5,y-5,10,10);mainCtx.fill();mainCtx.stroke();if(toolMode==='road'){mainCtx.font='11px Segoe UI';mainCtx.fillText(tr(type.name),x+9,y-9);}mainCtx.restore();
  }
 }
-let roadTypeControlScenery=null;
-function refreshRoadTypeControls(){
- const select=document.getElementById('road-type-select'),info=document.getElementById('road-type-info'),list=document.getElementById('road-type-placements');if(!select)return;
- if(roadTypeControlScenery!==S.sceneryindex){const chosen=select.value;select.replaceChildren();for(const type of roadTypeCatalog(S.sceneryindex)){const option=document.createElement('option');option.value=type.id;option.textContent=tr(type.name)+' · '+roadTypeLength(type)+' m';select.append(option);}if([...select.options].some(o=>o.value===chosen))select.value=chosen;roadTypeControlScenery=S.sceneryindex;}
- const equip=document.getElementById('road-type-equip');if(equip){equip.disabled=select.options.length===0;equip.setAttribute('aria-pressed',String(toolMode==='road'));}
- if(info){const selected=selectedRoadPlacement===null?null:roadPlacements[selectedRoadPlacement],type=selected&&roadTypeById(selected.typeId,selected.scenery);info.textContent=selected&&type?tr('Selected road span')+': '+selected.start.toFixed(1)+'–'+(selected.start+roadTypeLength(type)).toFixed(1)+' m':roadPlacements.length+' '+tr('placed road spans');}
- if(list){list.replaceChildren();for(let i=0;i<roadPlacements.length;i++){const p=roadPlacements[i],type=roadTypeById(p.typeId,p.scenery),option=document.createElement('option');option.value=i;option.textContent=(type?tr(type.name):p.typeId)+' · '+p.start.toFixed(1)+' m';list.append(option);}list.value=selectedRoadPlacement===null?'':String(selectedRoadPlacement);}
+let roadTypeCatalogKey;
+function showRoadTypeLength() {
+ const type = roadTypeById(document.getElementById('road-type-select').value, S.sceneryindex);
+ document.getElementById('road-type-length').textContent = type
+   ? `${roadTypeLength(type).toLocaleString(CURRENT_LANG)} m  ${type.segments.length} ${tr(type.segments.length === 1 ? 'section' : 'sections')}`
+   : '';
+}
+function refreshRoadTypeControls() {
+ const select = document.getElementById('road-type-select');
+ if (!select) return;
+ const catalogKey = S.sceneryindex + ':' + CURRENT_LANG;
+ if (roadTypeCatalogKey !== catalogKey) {
+   const chosen = select.value;
+   select.replaceChildren(...roadTypeCatalog(S.sceneryindex).map(type => new Option(tr(type.name), type.id)));
+   if ([...select.options].some(option => option.value === chosen)) select.value = chosen;
+   roadTypeCatalogKey = catalogKey;
+ }
+ showRoadTypeLength();
+ const equip = document.getElementById('road-type-equip');
+ equip.disabled = !select.options.length;
+ equip.setAttribute('aria-pressed', String(toolMode === 'road'));
+ const selected = roadPlacements[selectedRoadPlacement];
+ const selectedType = selected && roadTypeById(selected.typeId, selected.scenery);
+ document.getElementById('road-type-info').textContent = selectedType
+   ? tr('Selected road span') + ': ' + selected.start.toFixed(1) + '-' + (selected.start + roadTypeLength(selectedType)).toFixed(1) + ' m'
+   : '';
+ const manager = document.getElementById('road-type-manager');
+ manager.classList.toggle('hidden', !roadPlacements.length);
+ const list = document.getElementById('road-type-placements');
+ list.replaceChildren(...roadPlacements.map((placement, index) => {
+   const type = roadTypeById(placement.typeId, placement.scenery);
+   return new Option((type ? tr(type.name) : placement.typeId) + '  ' + placement.start.toFixed(1) + ' m', index);
+ }));
+ list.value = selected ? String(selectedRoadPlacement) : '';
 }
 function initRoadTypes(){
  const equip=document.getElementById('road-type-equip');if(!equip)return;equip.onclick=()=>{setToolMode('road');refreshRoadTypeControls();toast(tr('Click the road to place a road type. Drag its marker to move it.'));};
+ document.getElementById('road-type-select').addEventListener('change', showRoadTypeLength);
  document.getElementById('road-type-delete').onclick=()=>deleteRoadPlacement(selectedRoadPlacement);
  document.getElementById('road-type-clear').onclick=async()=>{if(!roadPlacements.length)return;if(await messageBox(tr('Road types'),tr('Remove all placed road types?'),[tr('Yes'),tr('No')])!==0)return;saveToHistory();roadPlacements=[];selectedRoadPlacement=null;refreshRoadTypeControls();displayChange();};
  document.getElementById('road-type-placements').onchange=e=>{selectedRoadPlacement=e.target.value===''?null:Number(e.target.value);refreshRoadTypeControls();displayChange();};refreshRoadTypeControls();

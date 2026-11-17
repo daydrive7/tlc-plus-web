@@ -84,7 +84,7 @@ function initAccessibility() {
     else return;
     event.preventDefault(); switchSidebarTab(tabs[index].dataset.tab); tabs[index].focus();
   });
-  document.querySelectorAll('.tb-menu-btn').forEach(button => {
+  document.querySelectorAll('.tb-menu-btn[data-menu]').forEach(button => {
     button.setAttribute('aria-haspopup', 'menu'); button.setAttribute('aria-expanded', 'false');
   });
   document.addEventListener('keydown', event => {
@@ -100,7 +100,7 @@ function initAccessibility() {
       }
       return;
     }
-    const mainButton = event.target.closest('.tb-menu-btn');
+    const mainButton = event.target.closest('.tb-menu-btn[data-menu]');
     if (mainButton && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
       event.preventDefault();
       if (openMenuBtn !== mainButton) showMenu(mainButton, MENU_BUILDERS[mainButton.dataset.menu]());
@@ -156,7 +156,7 @@ function initAccessibility() {
 
 function showTrackPointsWindow() {
   let refresh;
-  const backdrop = openModal('Track points — keyboard editor', body => {
+  const backdrop = openModal('Track points - keyboard editor', body => {
     const note = document.createElement('p');
     note.textContent = 'Inspect and change the control points without dragging. Select a point to edit its coordinates, radius and camber. New points are appended to the track. Undo is available after closing this dialog.';
     body.appendChild(note);
@@ -174,7 +174,7 @@ function showTrackPointsWindow() {
       const index = select.value || '0'; select.replaceChildren();
       polygon.forEach((p, i) => {
         const option = document.createElement('option'); option.value = String(i);
-        option.textContent = `${i + 1}: X ${p.x.toFixed(2)}, Y ${p.y.toFixed(2)}, Z ${p.z.toFixed(2)} m; radius ${p.radius.toFixed(2)} m; camber ${p.camber.toFixed(1)}°; segments ${p.segments}`;
+        option.textContent = `${i + 1}: X ${p.x.toFixed(2)}, Y ${p.y.toFixed(2)}, Z ${p.z.toFixed(2)} m; radius ${p.radius.toFixed(2)} m; camber ${p.camber.toFixed(1)}�; segments ${p.segments}`;
         select.appendChild(option);
       });
       if (polygon.length) select.value = String(Math.min(Number(index), polygon.length - 1));

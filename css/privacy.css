@@ -1,0 +1,14 @@
+/* Shared by the editor and the standalone policy page. */
+.storage-notice { position: fixed; z-index: 950; right: 16px; bottom: 16px; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 64px); overflow: auto; padding: 20px; background: #20252d; color: #f1f4f8; border: 1px solid #8ca6bf; border-radius: 10px; box-shadow: 0 10px 35px #0008; font: 14px/1.5 system-ui, sans-serif; }
+.storage-notice h2 { margin: 0 0 8px; font-size: 19px; }
+.storage-notice p { margin: 0 0 14px; }
+.storage-notice a { color: #9ddaff; }
+.storage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.storage-button { padding: 10px 14px; border: 1px solid #708298; border-radius: 5px; background: #263749; color: #fff; font: inherit; cursor: pointer; min-height: 44px; }
+.storage-actions .storage-button { flex: 1 1 170px; }
+.storage-button:hover { background: #354d66; }
+.storage-button:focus-visible, .storage-notice a:focus-visible { outline: 3px solid #ffdc6b; outline-offset: 3px; }
+.app-policy-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; padding: 5px 12px; background: var(--darker-silver); font-size: 12px; }
+.app-policy-links a { color: var(--white); text-decoration: underline; }
+.app-policy-links button { color: var(--white); font: inherit; background: transparent; border: 0; text-decoration: underline; cursor: pointer; }
+@media (max-width: 700px) { .app-policy-links { justify-content: center; gap: 4px 12px; } .app-policy-links a, .app-policy-links button { padding: 5px 0; } }

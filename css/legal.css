@@ -1,0 +1,24 @@
+* { box-sizing: border-box; }
+html { scroll-padding-top: 20px; }
+body { margin: 0; background: #111820; color: #e8eef5; font: 17px/1.65 system-ui, sans-serif; }
+main, header, footer { max-width: 860px; margin: auto; padding: 24px; }
+header { padding-top: 48px; }
+header p { color: #b5c7d7; }
+h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.15; }
+h2 { font-size: 28px; line-height: 1.3; }
+h3 { font-size: 20px; }
+section { border-top: 1px solid #3c4d5e; padding: 24px 0; }
+a { color: #9ddaff; text-underline-offset: 3px; }
+nav { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+:focus-visible { outline: 3px solid #ffdc6b; outline-offset: 4px; }
+.skip-link { position: fixed; left: 10px; top: -100px; background: #111820; padding: 10px; z-index: 10; }
+.skip-link:focus { top: 10px; }
+.skip-link:not(:focus) { clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; padding: 0; }
+table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 15px; }
+th, td { border: 1px solid #60758b; padding: 12px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+th:first-child { min-width: 135px; }
+.table-scroll { overflow-x: auto; }
+code { overflow-wrap: anywhere; }
+.contact { padding: 16px; border-left: 3px solid #9ddaff; background: #1c2936; }
+#privacy-status { min-height: 2em; }
+@media (max-width: 500px) { main, header, footer { padding: 18px; } th, td { padding: 8px; } }

@@ -11,9 +11,12 @@ function fitTrackInView() {
   const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
   const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
   const rect=mainCanvas.getBoundingClientRect();
-  zoom=Math.max(minZoom,Math.min(maxZoom,(rect.width-70)/Math.max(100,maxX-minX),(rect.height-70)/Math.max(100,maxY-minY)));
+  // Leave room for fingers and the bottom tool palette.
+  const toolbar=document.getElementById('toolbar');
+  const bottom=isTouchLayout()?(toolbar.getBoundingClientRect().height+20):30;
+  zoom=Math.max(minZoom,Math.min(maxZoom,(rect.width-70)/Math.max(100,maxX-minX),(rect.height-bottom-50)/Math.max(100,maxY-minY)));
   panX=rect.width/2-(minX+maxX)/2*zoom;
-  panY=rect.height/2-(minY+maxY)/2*zoom;
+  panY=(rect.height-bottom)/2-(minY+maxY)/2*zoom;
   clampPan();displayChange();
 }
 
@@ -70,7 +73,7 @@ function initMobileControls() {
   const panel=document.getElementById('right-panel');panel.prepend(bar,hint);
   const labels={pen:'Pen',selection:'Select',camber:'Camber',pan:'Pan',decorate:'Decorate','btn-zoom-in':'Zoom +','btn-zoom-out':'Zoom −','btn-undo':'Undo','btn-redo':'Redo','btn-reverse':'Reverse','btn-screenshot':'Photo'};
   document.querySelectorAll('#toolbar .tool-btn').forEach(button=>{
-    const label=document.createElement('span');label.className='touch-tool-label';label.dataset.origText=labels[button.dataset.tool||button.id];label.textContent=tr(label.dataset.origText);button.appendChild(label);
+    const label=document.createElement('span');label.className='touch-tool-label';label.textContent=tr(labels[button.dataset.tool||button.id]);button.appendChild(label);
     button.setAttribute('aria-label',button.title||label.textContent);
   });
   document.querySelector('#btn-toggle-sidebar').setAttribute('aria-label',tr('Settings sidebar'));

@@ -17,7 +17,6 @@
   --darker-silver: #202731;
   --grey: #a3afbf;
   --dark-grey: #131820;
-  --tool-selected: color-mix(in srgb, var(--accent) 25%, var(--darker-silver));
 
   --polygon-hover: #FFE600;
   --polygon-selected: #FF9F0A;
@@ -314,13 +313,13 @@ button { font-family: inherit; }
   background: var(--titlebar-bg);
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
-  grid-template-rows: auto 24px minmax(0, 1fr) auto;
+  grid-template-rows: 24px minmax(0, 1fr);
   overflow: hidden;
 }
-.ruler-north { grid-column: 2; grid-row: 2; background: var(--titlebar-bg); width: 100%; height: 24px; }
-.ruler-west { grid-column: 1; grid-row: 3; background: var(--titlebar-bg); width: 24px; height: 100%; }
+.ruler-north { grid-column: 2; grid-row: 1; background: var(--titlebar-bg); width: 100%; height: 24px; }
+.ruler-west { grid-column: 1; grid-row: 2; background: var(--titlebar-bg); width: 24px; height: 100%; }
 #main-canvas {
-  grid-column: 2; grid-row: 3;
+  grid-column: 2; grid-row: 2;
   background: var(--dark-silver);
   width: 100%; height: 100%;
   min-width: 0; min-height: 0;
@@ -328,36 +327,40 @@ button { font-family: inherit; }
   touch-action: none;
 }
 
-/* Docked canvas tools */
+/* Floating toolbar — 2-column grid like the original desktop app
+ * (row = index//2, column = index%2: pen|selection, camber|pan,
+ *  zoom in|zoom out, undo|redo, reverse|screenshot, Sidebar spanning) */
 #toolbar {
-  grid-column: 1 / -1;
-  grid-row: 1;
+  position: absolute; top: 12px; left: 34px; z-index: 20;
   background: var(--darker-silver);
-  border-bottom: 1px solid var(--light-silver);
-  padding: 5px 8px;
-  display: flex; align-items: center; gap: 2px;
-  overflow-x: auto;
+  border: 1px solid var(--grey);
+  border-radius: 4px;
+  padding: 5px;
+  display: grid;
+  grid-template-columns: repeat(2, 30px);
+  gap: 3px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
 }
 .tool-btn {
-  flex: 0 0 auto; min-width: 30px; height: 32px; padding: 0 6px; gap: 5px;
+  width: 30px; height: 30px;
   background: transparent; color: var(--white);
-  border: 1px solid transparent; border-radius: 4px;
+  border: none; border-radius: 3px;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .tool-btn svg { width: 17px; height: 17px; }
 .tool-btn:hover { background: var(--light-silver); }
-.tool-btn.active { background: var(--tool-selected); border-color: var(--accent); }
-.toolbar-sep { flex: 0 0 1px; height: 20px; background: var(--lighter-silver); margin: 0 4px; }
+.tool-btn.active { background: var(--accent); }
+.toolbar-sep { grid-column: 1 / -1; height: 1px; background: var(--grey); margin: 2px 1px; }
 .sidebar-toggle-btn {
-  flex: 0 0 auto; width: auto; min-height: 32px; padding: 4px 8px; margin: 0 0 0 auto;
-  background: var(--silver); color: var(--white); white-space: nowrap;
+  grid-column: 1 / -1;
+  width: auto; padding: 5px 6px; font-size: 10.5px; margin: 0;
+  background: var(--accent); color: #fff; border: none; border-radius: 3px; cursor: pointer;
 }
-.sidebar-toggle-btn:hover { background: var(--light-silver); }
+.sidebar-toggle-btn:hover { background: var(--accent-light); color: #000; }
 
 /* Track status */
 #stats-card {
-  grid-column: 1 / -1;
-  grid-row: 4;
+  flex: 0 0 auto;
   background: var(--titlebar-bg);
   border-top: 1px solid var(--light-silver);
   padding: 6px 12px;
@@ -614,11 +617,6 @@ button { font-family: inherit; }
   .slider-val { grid-column: 3; width: 100%; }
 }
 
-@media (min-width: 1200px) and (pointer: fine) {
-  #toolbar .tool-btn[data-tool] .touch-tool-label { display: inline; white-space: nowrap; }
-  #toolbar .tool-btn[data-tool] { padding-inline: 8px; }
-}
-
 @media (max-width: 700px), (pointer: coarse) {
   /* Sidebar becomes an off-canvas drawer */
   #left-panel {
@@ -640,6 +638,11 @@ button { font-family: inherit; }
   .tb-menu-btn { padding: 4px 8px; }
   .tb-left { padding: 0 8px; }
   .tb-version { display: none; }
+
+  /* Larger touch targets for the canvas toolbar */
+  #toolbar { grid-template-columns: repeat(2, 34px); top: 34px; left: 30px; }
+  .tool-btn { width: 34px; height: 34px; }
+  .tool-btn svg { width: 19px; height: 19px; }
 
   /* Smaller elevation graph */
   #nav-area { flex: 0 0 110px; height: 110px; min-height: 60px; }
@@ -696,14 +699,11 @@ button { font-family: inherit; }
   #mobile-actions button:disabled { opacity: .4; }
   #mobile-actions .active { background: var(--accent-dark); border-color: var(--accent); }
   #mobile-hint { display: block; padding: 3px 8px 5px; font-size: 11px; line-height: 1.3; min-height: 22px; background: var(--darker-silver); }
-  #canvas-area { grid-template-rows: 24px minmax(0, 1fr) auto auto; min-height: 0; }
-  .ruler-north { grid-row: 1; }
-  .ruler-west, #main-canvas { grid-row: 2; }
-  #stats-card { grid-row: 3; padding: 4px 8px; flex-wrap: wrap; }
+  #stats-card { padding: 4px 8px; flex-wrap: wrap; }
   #stats-card .stat-value { margin-inline-end: 4px; }
-  #toolbar { grid-row: 4; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); padding: 4px 5px; gap: 4px; border-block: 1px solid var(--light-silver); }
+  #toolbar { top: auto; bottom: 8px; left: 6px; right: 6px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); padding: 5px; gap: 4px; }
   #toolbar .toolbar-sep { display: none; }
-  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { display: flex; flex-direction: column; width: 100%; height: 44px; min-width: 0; padding: 3px 1px; gap: 2px; margin: 0; font-size: 10px; align-items: center; justify-content: center; }
+  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { display: flex; flex-direction: column; width: 100%; height: 48px; min-width: 0; padding: 3px 1px; gap: 2px; grid-column: auto; font-size: 10px; align-items: center; justify-content: center; }
   .touch-tool-label { display: block; font-size: 10px; line-height: 12px; }
   #toolbar .tool-btn svg { width: 20px; height: 20px; }
   #tab-bar .tab-btn, .sec-head { min-height: 44px; }

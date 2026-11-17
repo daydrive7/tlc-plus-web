@@ -212,7 +212,12 @@
     <!-- Right panel -->
     <div id="right-panel">
       <div id="canvas-area">
-        <!-- Canvas tools -->
+        <canvas id="ruler-north" class="ruler-north" height="24" aria-hidden="true"></canvas>
+        <canvas id="ruler-west" class="ruler-west" width="24" aria-hidden="true"></canvas>
+        <canvas id="main-canvas" tabindex="0" aria-label="Track layout editor" aria-describedby="canvas-access-help">Visual track layout. Use Edit → Track points for coordinate-based editing.</canvas>
+        <p id="canvas-access-help" class="sr-only">Use Edit → Track points, or the Track points button below, to inspect, add and edit points without dragging. While the canvas has focus, arrows move selected points; Enter edits them and Delete removes them. Help lists further shortcuts.</p>
+
+        <!-- Floating toolbar -->
         <div id="toolbar" role="toolbar" aria-label="Canvas tools">
           <button class="tool-btn" data-tool="pen" data-tip="Pen tool" title="Pen tool">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><path d="M 19 3.5 L 20.5 5 L 7.5 18 L 4 20 L 6 16.5 Z"/><line x1="15" y1="7.5" x2="16.5" y2="9"/><line x1="12.5" y1="10" x2="14" y2="11.5"/><line x1="10" y1="12.5" x2="11.5" y2="14"/></svg>
@@ -243,17 +248,13 @@
           <button class="styled-btn sidebar-toggle-btn" id="btn-toggle-sidebar">Sidebar</button>
         </div>
 
-        <canvas id="ruler-north" class="ruler-north" height="24" aria-hidden="true"></canvas>
-        <canvas id="ruler-west" class="ruler-west" width="24" aria-hidden="true"></canvas>
-        <canvas id="main-canvas" tabindex="0" aria-label="Track layout editor" aria-describedby="canvas-access-help">Visual track layout. Use Edit → Track points for coordinate-based editing.</canvas>
-        <p id="canvas-access-help" class="sr-only">Use Edit → Track points, or the Track points button below, to inspect, add and edit points without dragging. While the canvas has focus, arrows move selected points; Enter edits them and Delete removes them. Help lists further shortcuts.</p>
+      </div>
 
-        <!-- Track status -->
-        <div id="stats-card">
-          <span class="stat-label">Scene:</span><span class="stat-value" id="stat-scenery">Eifel Flat</span>
-          <span class="stat-label">Length:</span><span class="stat-value" id="stat-length">--- m</span>
-          <span class="stat-label">Corners:</span><span class="stat-value" id="stat-corners">0</span>
-        </div>
+      <!-- Track status -->
+      <div id="stats-card">
+        <span class="stat-label">Scene:</span><span class="stat-value" id="stat-scenery">Eifel Flat</span>
+        <span class="stat-label">Length:</span><span class="stat-value" id="stat-length">--- m</span>
+        <span class="stat-label">Corners:</span><span class="stat-value" id="stat-corners">0</span>
       </div>
 
       <!-- Draggable splitter -->

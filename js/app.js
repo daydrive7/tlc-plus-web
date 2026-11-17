@@ -342,10 +342,10 @@ function getPolygonCenter() {
   return [cx, cy];
 }
 
-function zoomEvent(mx, my, direction) {
+function zoomEvent(mx, my, direction, factor = zoomFactor) {
   const oldZoom = zoom;
-  if (direction === 'out') zoom /= zoomFactor;
-  else zoom *= zoomFactor;
+  if (direction === 'out') zoom /= factor;
+  else zoom *= factor;
   if (zoom > maxZoom) zoom = maxZoom;
   else if (zoom < minZoom) zoom = minZoom;
 

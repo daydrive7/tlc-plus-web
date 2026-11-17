@@ -1,5 +1,5 @@
 /* =========================================================================
- * Track Layout Creator + - Web Port (styles)
+ * Track Layout Creator + — Web Port (styles)
  * Dark theme matching the original TLC+ palette (MIT-licensed project).
  * ========================================================================= */
 
@@ -133,7 +133,7 @@ button { font-family: inherit; }
 .dropdown-menu .menu-sub-label {
   padding: 4px 18px; color: var(--grey); font-size: 11px;
 }
-/* Flyout submenu (Language ?) */
+/* Flyout submenu (Language ▸) */
 .menu-item.has-submenu {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
 }
@@ -325,7 +325,7 @@ button { font-family: inherit; }
   touch-action: none;
 }
 
-/* Floating toolbar - 2-column grid like the original desktop app
+/* Floating toolbar — 2-column grid like the original desktop app
  * (row = index//2, column = index%2: pen|selection, camber|pan,
  *  zoom in|zoom out, undo|redo, reverse|screenshot, Sidebar spanning) */
 #toolbar {
@@ -397,7 +397,7 @@ button { font-family: inherit; }
   flex: 0 0 80px; height: 80px;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr);
-  grid-template-rows: 100%;   /* explicit row - prevents cyclic height fallback */
+  grid-template-rows: 100%;   /* explicit row — prevents cyclic height fallback */
   background: var(--darker-silver);
   min-height: 50px;
   max-height: calc(100% - 101px);

@@ -156,7 +156,7 @@ function initAccessibility() {
 
 function showTrackPointsWindow() {
   let refresh;
-  const backdrop = openModal('Track points - keyboard editor', body => {
+  const backdrop = openModal('Track points — keyboard editor', body => {
     const note = document.createElement('p');
     note.textContent = 'Inspect and change the control points without dragging. Select a point to edit its coordinates, radius and camber. New points are appended to the track. Undo is available after closing this dialog.';
     body.appendChild(note);
@@ -174,7 +174,7 @@ function showTrackPointsWindow() {
       const index = select.value || '0'; select.replaceChildren();
       polygon.forEach((p, i) => {
         const option = document.createElement('option'); option.value = String(i);
-        option.textContent = `${i + 1}: X ${p.x.toFixed(2)}, Y ${p.y.toFixed(2)}, Z ${p.z.toFixed(2)} m; radius ${p.radius.toFixed(2)} m; camber ${p.camber.toFixed(1)}�; segments ${p.segments}`;
+        option.textContent = `${i + 1}: X ${p.x.toFixed(2)}, Y ${p.y.toFixed(2)}, Z ${p.z.toFixed(2)} m; radius ${p.radius.toFixed(2)} m; camber ${p.camber.toFixed(1)}°; segments ${p.segments}`;
         select.appendChild(option);
       });
       if (polygon.length) select.value = String(Math.min(Number(index), polygon.length - 1));

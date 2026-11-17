@@ -1,6 +1,6 @@
 /* =========================================================================
- * Track Layout Creator + - Web Port
- * app.js - application core: state, canvas rendering, interactions
+ * Track Layout Creator + — Web Port
+ * app.js — application core: state, canvas rendering, interactions
  *          (web port of the MIT-licensed TLC+ desktop app v1.3.0)
  *
  * Original tool: Copyright (c) 2017 eran0004, (c) 2026 daydrive7 (MIT)
@@ -128,7 +128,7 @@ const DPR = () => window.devicePixelRatio || 1;
 
 /* Redraw scheduling.
  * The main canvas is a layered stack (background -> polygon -> track) where
- * no single layer clears the canvas - so whenever the polygon or track is
+ * no single layer clears the canvas — so whenever the polygon or track is
  * dirty, the whole stack MUST be redrawn from the background up. Otherwise
  * intermediate drag positions accumulate as ghost trails. Only the nav
  * (elevation) canvas is independent. */
@@ -298,7 +298,7 @@ function worldToScreenY(y) { return y * zoom + panY; }
 function canvasX(mouseX) { return mouseX - panX; }
 function canvasY(mouseY) { return mouseY - panY; }
 
-/* Keep the view centre within the map border (Scroll margin slider) -
+/* Keep the view centre within the map border (Scroll margin slider) —
  * the web equivalent of the original's scrollregion limit. */
 function clampPan() {
   if (!S.heightMap) return;
@@ -379,7 +379,7 @@ function sizeCanvases() {
   const dpr = DPR();
   for (const canvas of [mainCanvas, rulerNorth, rulerWest, navCanvas, navRuler]) {
     const rect = canvas.getBoundingClientRect();
-    // Skip degenerate rects (app hidden / layout not ready) - writing a 1x1
+    // Skip degenerate rects (app hidden / layout not ready) — writing a 1x1
     // backing store would poison the canvas aspect-ratio for later layouts.
     if (rect.width < 2 || rect.height < 2) continue;
     const w = Math.max(1, Math.floor(rect.width * dpr));
@@ -1093,7 +1093,7 @@ function drawTriangleScreen(x, y, radius, angle, fill) {
 }
 
 function drawCurveOutline(center, radius, startAngle, sweepAngle, width, colour, lineWidth) {
-  // NOTE: width is in world metres (as the original) - converted to screen here
+  // NOTE: width is in world metres (as the original) — converted to screen here
   const r0 = (radius - width / 2) * zoom;
   const r1 = (radius + width / 2) * zoom;
   let radii;
@@ -1378,7 +1378,7 @@ function drawCursor() {
 function scheduleCursorHide() {
   if (indicatorTimer) clearTimeout(indicatorTimer);
   indicatorTimer = setTimeout(() => {
-    // redraw without cursors - handled by expiry flag
+    // redraw without cursors — handled by expiry flag
     navCursors = navCursors.map(d => d); // keep values
     cursorVisible = false;
     requestRedraw(['track', 'nav']);

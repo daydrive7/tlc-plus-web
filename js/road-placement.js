@@ -65,7 +65,7 @@ let roadTypeCatalogKey;
 function showRoadTypeLength() {
  const type = roadTypeById(document.getElementById('road-type-select').value, S.sceneryindex);
  document.getElementById('road-type-length').textContent = type
-   ? `${roadTypeLength(type).toLocaleString(CURRENT_LANG)} m  ${type.segments.length} ${tr(type.segments.length === 1 ? 'section' : 'sections')}`
+   ? `${roadTypeLength(type).toLocaleString(CURRENT_LANG)} m · ${type.segments.length} ${tr(type.segments.length === 1 ? 'section' : 'sections')}`
    : '';
 }
 function refreshRoadTypeControls() {
@@ -85,14 +85,14 @@ function refreshRoadTypeControls() {
  const selected = roadPlacements[selectedRoadPlacement];
  const selectedType = selected && roadTypeById(selected.typeId, selected.scenery);
  document.getElementById('road-type-info').textContent = selectedType
-   ? tr('Selected road span') + ': ' + selected.start.toFixed(1) + '-' + (selected.start + roadTypeLength(selectedType)).toFixed(1) + ' m'
+   ? tr('Selected road span') + ': ' + selected.start.toFixed(1) + '–' + (selected.start + roadTypeLength(selectedType)).toFixed(1) + ' m'
    : '';
  const manager = document.getElementById('road-type-manager');
  manager.classList.toggle('hidden', !roadPlacements.length);
  const list = document.getElementById('road-type-placements');
  list.replaceChildren(...roadPlacements.map((placement, index) => {
    const type = roadTypeById(placement.typeId, placement.scenery);
-   return new Option((type ? tr(type.name) : placement.typeId) + '  ' + placement.start.toFixed(1) + ' m', index);
+   return new Option((type ? tr(type.name) : placement.typeId) + ' · ' + placement.start.toFixed(1) + ' m', index);
  }));
  list.value = selected ? String(selectedRoadPlacement) : '';
 }

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<title>TLC+ Web - Track Layout Creator</title>
-<meta name="description" content="TLC+ Web - Track Layout Creator + web port. Design race track layouts and export TED files. MIT-licensed port of the desktop tool by eran0004 &amp; daydrive7.">
+<title>TLC+ Web — Track Layout Creator</title>
+<meta name="description" content="TLC+ Web — Track Layout Creator + web port. Design race track layouts and export TED files. MIT-licensed port of the desktop tool by eran0004 &amp; daydrive7.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E1E1E'/%3E%3Cpath d='M 4 22 Q 10 6 16 12 Q 22 18 25.73612403869629 18.54972267150879 Q 27.80955696105957 18.459571838378906 29.07164764404297 17.017183303833008' fill='none' stroke='%2364D2FF' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/style.css?v=1.3.5">
 <link rel="stylesheet" href="css/privacy.css?v=1.3.5">
@@ -222,8 +222,8 @@
       <div id="canvas-area">
         <canvas id="ruler-north" class="ruler-north" height="24" aria-hidden="true"></canvas>
         <canvas id="ruler-west" class="ruler-west" width="24" aria-hidden="true"></canvas>
-        <canvas id="main-canvas" tabindex="0" aria-label="Track layout editor" aria-describedby="canvas-access-help">Visual track layout. Use Edit  Track points for coordinate-based editing.</canvas>
-        <p id="canvas-access-help" class="sr-only">Use Edit  Track points, or the Track points button below, to inspect, add and edit points without dragging. While the canvas has focus, arrows move selected points; Enter edits them and Delete removes them. Help lists further shortcuts.</p>
+        <canvas id="main-canvas" tabindex="0" aria-label="Track layout editor" aria-describedby="canvas-access-help">Visual track layout. Use Edit → Track points for coordinate-based editing.</canvas>
+        <p id="canvas-access-help" class="sr-only">Use Edit → Track points, or the Track points button below, to inspect, add and edit points without dragging. While the canvas has focus, arrows move selected points; Enter edits them and Delete removes them. Help lists further shortcuts.</p>
 
         <!-- Floating toolbar -->
         <div id="toolbar" role="toolbar" aria-label="Canvas tools">
@@ -234,7 +234,7 @@
             <svg viewBox="0 0 24 24"><path d="M6 3l12 8-5 1 3 6-2.5 1.2-3-6L7 17l-1-14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
           </button>
           <button class="tool-btn" data-tool="camber" data-tip="Camber tool" title="Camber tool">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><line x1="3" y1="12" x2="21" y2="12" stroke-width="1.5"/><line x1="6" y1="19" x2="18" y2="5"/><path d="M 15 12 A 3 3 0 0 0 16.5 9" stroke-dasharray="1 1"/><path d="M 9 12 A 3 3 0 0 0 7.5 15" stroke-dasharray="1 1"/><text x="17" y="8" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">?</text><text x="5" y="18" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">�</text></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"><line x1="3" y1="12" x2="21" y2="12" stroke-width="1.5"/><line x1="6" y1="19" x2="18" y2="5"/><path d="M 15 12 A 3 3 0 0 0 16.5 9" stroke-dasharray="1 1"/><path d="M 9 12 A 3 3 0 0 0 7.5 15" stroke-dasharray="1 1"/><text x="17" y="8" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">α</text><text x="5" y="18" font-size="5" font-family="sans-serif" fill="currentColor" stroke="none">β</text></svg>
           </button>
           <button class="tool-btn" data-tool="pan" data-tip="Panning tool" title="Panning tool">
             <svg viewBox="0 0 24 24"><path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11m0-5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6.5 7S5 17.5 5 14v-3a1.5 1.5 0 0 1 3 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -268,7 +268,7 @@
 
       <div id="nav-area">
         <canvas id="nav-ruler" class="nav-ruler" width="36" aria-hidden="true"></canvas>
-        <canvas id="nav-canvas" role="img" aria-label="Visual elevation profile">Visual track elevation profile. Point elevations can be inspected in Edit  Track points.</canvas>
+        <canvas id="nav-canvas" role="img" aria-label="Visual elevation profile">Visual track elevation profile. Point elevations can be inspected in Edit → Track points.</canvas>
       </div>
     </div>
   </main>

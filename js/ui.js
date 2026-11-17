@@ -1,6 +1,6 @@
 /* =========================================================================
- * Track Layout Creator + - Web Port
- * ui.js - menus, dialogs, sidebar wiring, file I/O and bootstrap
+ * Track Layout Creator + — Web Port
+ * ui.js — menus, dialogs, sidebar wiring, file I/O and bootstrap
  *         (web port of the MIT-licensed TLC+ desktop app v1.3.0)
  *
  * Original tool: Copyright (c) 2017 eran0004, (c) 2026 daydrive7 (MIT)
@@ -120,7 +120,7 @@ function editPointProperties() {
   const p = polygon[idx];
 
   openModal(tr('Point Properties'), (body, backdrop) => {
-    // Display values with sensible precision (keeps the UI readable) -
+    // Display values with sensible precision (keeps the UI readable) —
     // parsed back to full numbers on Apply.
     const fmt = (v, d) => String(parseFloat((+v).toFixed(d)));
     const fields = [
@@ -361,7 +361,7 @@ function closeMenus() {
   openMenuBtn = null;
 }
 
-/* Flyout submenu (e.g. Language ?) - opens to the right of the parent item,
+/* Flyout submenu (e.g. Language ▸) — opens to the right of the parent item,
  * flipping to the left / clamping up when it would overflow the viewport.
  * Opens on hover (desktop) and on click/tap (mobile). */
 function openSubMenuFor(anchorItem, children) {
@@ -483,7 +483,7 @@ const MENU_BUILDERS = {
       { label: tr('Import TED'), action: importTedEditable },
       { label: tr('Export polygon'), action: exportPolygonFile },
       { label: tr('Export to TED'), action: exportTEDFile },
-      { label: tr('Edit TED road sections'), action: () => window.TLCRoadSections.open() },
+      { label: tr('Edit TED road sections…'), action: () => window.TLCRoadSections.open() },
       '-',
       { label: tr('Save screenshot (PNG)'), action: exportScreen },
       { label: tr('Draw isometric view'), action: drawIsoMap },
@@ -560,7 +560,7 @@ function applyLanguageToDom() {
     if (el.children.length === 0) {
       el.textContent = translated;
     } else {
-      // keep element children (e.g. the checkbox inside a <label>) - update
+      // keep element children (e.g. the checkbox inside a <label>) — update
       // only the trailing text node
       const textNodes = Array.from(el.childNodes)
         .filter(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
@@ -709,7 +709,7 @@ function exportPolygonFile() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Local track vault (browser storage) - TLC+ Web exclusive            */
+/* Local track vault (browser storage) — TLC+ Web exclusive            */
 /* Tracks are persisted in localStorage as base64 project payloads (legacy TRK5 also reads),      */
 /* like in-game save files: name them, list them, load/delete anytime. */
 /* ------------------------------------------------------------------ */
@@ -1291,7 +1291,7 @@ function toggleSidebar() {
   const divider = document.getElementById('sidebar-divider');
   const collapsed = panel.classList.toggle('hidden');
   divider.classList.toggle('hidden', collapsed);
-  // On mobile the sidebar is a drawer - show a backdrop to close it by tapping outside
+  // On mobile the sidebar is a drawer — show a backdrop to close it by tapping outside
   const backdrop = document.getElementById('sidebar-backdrop');
   if (backdrop) backdrop.classList.toggle('hidden', collapsed || !isMobileLayout());
   setTimeout(() => { sizeCanvases(); displayChange(); }, 20);
@@ -1331,7 +1331,7 @@ function initCollapsibleSections() {
       if (child.classList && child.classList.contains('sec-label')) {
         // Start a new section group; the original label element is kept
         // (so translation + dataset.origText survive) and gets a toggle.
-        // NOTE: the group must be captured per-section (const) - closures
+        // NOTE: the group must be captured per-section (const) — closures
         // over a shared loop variable would all toggle the last group.
         const sectionGroup = document.createElement('div');
         sectionGroup.className = 'sec-group';
@@ -1459,7 +1459,7 @@ function initMobile() {
 function initWarningFlasher() {
   setInterval(() => {
     // Only re-render while warnings actually exist (the original just
-    // recolours items; we redraw the track layer - keep it idle otherwise).
+    // recolours items; we redraw the track layer — keep it idle otherwise).
     if (!hasWarnings || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     warningFlash = !warningFlash;
     trackChange();

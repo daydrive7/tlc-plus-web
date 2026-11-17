@@ -7,16 +7,17 @@
   --accent: #0A84FF;
   --accent-light: #64D2FF;
   --accent-dark: #005BB5;
-  --titlebar-bg: #00121f;
+  --titlebar-bg: #171d26;
 
-  --white: #E0E0E0;
-  --lighter-silver: #4E4E4E;
-  --light-silver: #3C3C3C;
-  --silver: #2D2D2D;
-  --dark-silver: #252526;   /* canvas bg */
-  --darker-silver: #1E1E1E; /* panel bg */
-  --grey: #858585;
-  --dark-grey: #121212;
+  --white: #e5eaf2;
+  --lighter-silver: #485568;
+  --light-silver: #323e4e;
+  --silver: #272f3b;
+  --dark-silver: #1a2029;
+  --darker-silver: #202731;
+  --grey: #a3afbf;
+  --dark-grey: #131820;
+  --tool-selected: color-mix(in srgb, var(--accent) 25%, var(--darker-silver));
 
   --polygon-hover: #FFE600;
   --polygon-selected: #FF9F0A;
@@ -30,8 +31,8 @@
   --nav-slope: #FF9F0A;
   --nav-cursor: #FF453A;
 
-  --grid-color: #333333;
-  --grid-label: #858585;
+  --grid-color: #2c3746;
+  --grid-label: #8e9eb2;
   --track-track: #E0E0E0;
   --track-border: #858585;
 }
@@ -59,6 +60,7 @@ html, body {
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
 :root[data-theme="Classic"] {
+  --titlebar-bg: #e8edf3;
   --white: #202020; --lighter-silver: #BBBBBB; --light-silver: #D0D0D0;
   --silver: #EEEEEE; --dark-silver: #F5F5F5; --darker-silver: #FFFFFF;
   --grey: #666666; --dark-grey: #DDDDDD; --grid-color: #DDDDDD;
@@ -88,19 +90,20 @@ button { font-family: inherit; }
 .splash-version { color: var(--grey); margin-top: 6px; font-size: 14px; }
 
 /* ============ App frame ============ */
-#app { display: flex; flex-direction: column; height: 100vh; }
+#app { display: flex; flex-direction: column; height: 100dvh; }
 
 /* ============ Title bar ============ */
 #titlebar {
-  height: 30px; flex: 0 0 30px;
+  height: 38px; flex: 0 0 38px;
   background: var(--titlebar-bg);
+  border-bottom: 1px solid var(--light-silver);
   display: flex; align-items: center;
   user-select: none;
   -webkit-user-select: none;
 }
-.tb-left { display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--accent-light); }
-.tb-logo { width: 16px; height: 16px; }
-.tb-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+.tb-left { display: flex; align-items: center; gap: 8px; padding: 0 14px; margin-inline-end: 6px; border-inline-end: 1px solid var(--light-silver); color: var(--white); }
+.tb-logo { width: 19px; height: 19px; color: var(--accent-light); }
+.tb-title { font-size: 13px; font-weight: 650; white-space: nowrap; }
 .tb-menus { display: flex; align-items: center; gap: 2px; }
 .tb-menu-btn {
   background: transparent; color: var(--white); border: none;
@@ -161,13 +164,13 @@ button { font-family: inherit; }
   display: flex; flex-direction: column;
   min-height: 0;
 }
-#tab-bar { display: flex; padding: 8px 5px 0; gap: 2px; border-bottom: 1px solid var(--light-silver); }
+#tab-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 44px; border-bottom: 1px solid var(--light-silver); background: var(--titlebar-bg); }
 .tab-btn {
-  flex: 1; background: transparent; border: none; color: var(--grey);
-  padding: 8px 4px; font-size: 11.5px; cursor: pointer; border-radius: 3px 3px 0 0;
+  background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--grey);
+  padding: 6px 4px; font-size: 11.5px; cursor: pointer; overflow-wrap: anywhere;
 }
-.tab-btn:hover { color: var(--white); }
-.tab-btn.active { background: var(--silver); color: var(--white); }
+.tab-btn:hover { color: var(--white); background: var(--silver); }
+.tab-btn.active { background: var(--darker-silver); color: var(--white); border-bottom-color: var(--accent); font-weight: 650; }
 
 #sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0 20px; }
 #sidebar-scroll::-webkit-scrollbar { width: 8px; }
@@ -178,8 +181,8 @@ button { font-family: inherit; }
 
 .sec-label {
   padding: 12px 12px 4px;
-  font-size: 10px; font-weight: 700; letter-spacing: .8px;
-  color: var(--accent-light);
+  font-size: 10px; font-weight: 700; letter-spacing: .065em;
+  color: var(--white);
   text-transform: uppercase;
 }
 .sec-desc { margin: 2px 12px 8px; color: var(--grey); font-size: 11.5px; }
@@ -219,7 +222,7 @@ button { font-family: inherit; }
   width: 58px; padding: 2px 5px;
   background: var(--darker-silver); color: var(--white);
   border: 1px solid var(--light-silver); border-radius: 3px;
-  font-size: 11px; font-family: inherit; text-align: right;
+  font-size: 12px; font-family: inherit; font-variant-numeric: tabular-nums; text-align: right;
   -moz-appearance: textfield; appearance: textfield;
 }
 .slider-val::-webkit-outer-spin-button,
@@ -232,8 +235,10 @@ button { font-family: inherit; }
 .sec-head {
   display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; user-select: none;
-  padding: 10px 12px 2px 12px;
-  background: transparent; border: none;
+  padding: 5px 12px;
+  background: var(--silver); border: 0; border-block: 1px solid var(--light-silver);
+  margin: 7px 0 4px;
+  text-align: start;
 }
 .sec-head:hover .sec-label { color: var(--accent); }
 .sec-group > .sec-head .sec-label { padding: 0; }
@@ -293,8 +298,9 @@ button { font-family: inherit; }
 
 /* ============ Sidebar divider ============ */
 #sidebar-divider {
-  width: 4px; flex: 0 0 4px;
-  background: var(--grey);
+  width: 5px; flex: 0 0 5px;
+  background: var(--titlebar-bg);
+  border-inline: 1px solid var(--light-silver);
   cursor: pointer;
 }
 #sidebar-divider:hover { background: var(--accent); }
@@ -305,16 +311,16 @@ button { font-family: inherit; }
 /* ============ Canvas area ============ */
 #canvas-area {
   flex: 1; position: relative; min-height: 100px;
-  background: var(--silver);
+  background: var(--titlebar-bg);
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
-  grid-template-rows: 24px minmax(0, 1fr);
+  grid-template-rows: auto 24px minmax(0, 1fr) auto;
   overflow: hidden;
 }
-.ruler-north { grid-column: 2; grid-row: 1; background: var(--dark-silver); width: 100%; height: 24px; }
-.ruler-west { grid-column: 1; grid-row: 2; background: var(--dark-silver); width: 24px; height: 100%; }
+.ruler-north { grid-column: 2; grid-row: 2; background: var(--titlebar-bg); width: 100%; height: 24px; }
+.ruler-west { grid-column: 1; grid-row: 3; background: var(--titlebar-bg); width: 24px; height: 100%; }
 #main-canvas {
-  grid-column: 2; grid-row: 2;
+  grid-column: 2; grid-row: 3;
   background: var(--dark-silver);
   width: 100%; height: 100%;
   min-width: 0; min-height: 0;
@@ -322,57 +328,79 @@ button { font-family: inherit; }
   touch-action: none;
 }
 
-/* Floating toolbar — 2-column grid like the original desktop app
- * (row = index//2, column = index%2: pen|selection, camber|pan,
- *  zoom in|zoom out, undo|redo, reverse|screenshot, Sidebar spanning) */
+/* Docked canvas tools */
 #toolbar {
-  position: absolute; top: 12px; left: 34px; z-index: 20;
+  grid-column: 1 / -1;
+  grid-row: 1;
   background: var(--darker-silver);
-  border: 1px solid var(--grey);
-  border-radius: 4px;
-  padding: 5px;
-  display: grid;
-  grid-template-columns: repeat(2, 30px);
-  gap: 3px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  border-bottom: 1px solid var(--light-silver);
+  padding: 5px 8px;
+  display: flex; align-items: center; gap: 2px;
+  overflow-x: auto;
 }
 .tool-btn {
-  width: 30px; height: 30px;
+  flex: 0 0 auto; min-width: 30px; height: 32px; padding: 0 6px; gap: 5px;
   background: transparent; color: var(--white);
-  border: none; border-radius: 3px;
+  border: 1px solid transparent; border-radius: 4px;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .tool-btn svg { width: 17px; height: 17px; }
 .tool-btn:hover { background: var(--light-silver); }
-.tool-btn.active { background: var(--accent); }
-.toolbar-sep { grid-column: 1 / -1; height: 1px; background: var(--grey); margin: 2px 1px; }
+.tool-btn.active { background: var(--tool-selected); border-color: var(--accent); }
+.toolbar-sep { flex: 0 0 1px; height: 20px; background: var(--lighter-silver); margin: 0 4px; }
 .sidebar-toggle-btn {
-  grid-column: 1 / -1;
-  width: auto; padding: 5px 6px; font-size: 10.5px; margin: 0;
-  background: var(--accent); color: #fff; border: none; border-radius: 3px; cursor: pointer;
+  flex: 0 0 auto; width: auto; min-height: 32px; padding: 4px 8px; margin: 0 0 0 auto;
+  background: var(--silver); color: var(--white); white-space: nowrap;
 }
-.sidebar-toggle-btn:hover { background: var(--accent-light); color: #000; }
+.sidebar-toggle-btn:hover { background: var(--light-silver); }
 
-/* Stats card */
+/* Track status */
 #stats-card {
-  position: absolute; right: 15px; bottom: 15px; z-index: 20;
-  background: var(--darker-silver);
-  border: 1px solid var(--light-silver);
-  border-radius: 3px;
-  padding: 6px 14px;
+  grid-column: 1 / -1;
+  grid-row: 4;
+  background: var(--titlebar-bg);
+  border-top: 1px solid var(--light-silver);
+  padding: 6px 12px;
   display: flex; gap: 6px; align-items: baseline;
+  font-variant-numeric: tabular-nums;
 }
-.stat-label { color: var(--grey); font-size: 11px; font-weight: 700; }
-.stat-value { color: var(--white); font-size: 12px; margin-right: 8px; }
+#app .app-policy-links {
+  border-top: 1px solid var(--light-silver);
+  background: var(--titlebar-bg);
+  gap: 4px 14px;
+  font-size: 11px;
+}
+#app .app-policy-links a,
+#app .app-policy-links [data-storage-settings] { color: var(--grey); }
+#btn-track-points {
+  margin-inline-end: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--lighter-silver);
+  border-radius: 3px;
+  background: var(--silver);
+  text-decoration: none;
+}
+#btn-track-points:hover { background: var(--light-silver); }
+.stat-label { color: var(--grey); font-size: 11px; }
+.stat-value { color: var(--white); font-size: 12px; margin-inline-end: 10px; }
+.stat-value:last-child { margin-inline-end: 0; }
 
 /* ============ Elevation splitter ============ */
 #elev-splitter {
-  height: 6px; flex: 0 0 6px;
+  min-height: 24px; flex: 0 0 24px;
   background: var(--darker-silver);
   cursor: ns-resize;
   border-top: 1px solid var(--light-silver);
+  position: relative;
+  display: flex; align-items: center;
+  padding-inline: 12px;
 }
-#elev-splitter:hover { background: var(--accent); }
+#elev-splitter:hover { background: var(--light-silver); }
+#elev-splitter::after {
+  content: ""; position: absolute; inset-inline-start: 50%; width: 28px; height: 5px;
+  transform: translateX(-50%); border-block: 1px solid var(--grey);
+}
+.elevation-label { font-size: 11px; font-weight: 650; }
 
 /* ============ Nav (elevation) area ============ */
 #nav-area {
@@ -574,7 +602,21 @@ button { font-family: inherit; }
 
 /* Responsive / mobile */
 @media (max-width: 900px) {
-  #left-panel { width: 260px; flex-basis: 260px; }
+  #left-panel { width: 270px; flex-basis: 270px; }
+}
+
+@media (min-width: 701px) and (pointer: fine) {
+  .slider-row {
+    grid-template-columns: minmax(0, 1fr) minmax(49px, 27%) 50px;
+    min-height: 30px;
+  }
+  .slider-row input[type="range"] { grid-column: 2; grid-row: 1; }
+  .slider-val { grid-column: 3; width: 100%; }
+}
+
+@media (min-width: 1200px) and (pointer: fine) {
+  #toolbar .tool-btn[data-tool] .touch-tool-label { display: inline; white-space: nowrap; }
+  #toolbar .tool-btn[data-tool] { padding-inline: 8px; }
 }
 
 @media (max-width: 700px), (pointer: coarse) {
@@ -598,14 +640,6 @@ button { font-family: inherit; }
   .tb-menu-btn { padding: 4px 8px; }
   .tb-left { padding: 0 8px; }
   .tb-version { display: none; }
-
-  /* Larger touch targets for the canvas toolbar */
-  #toolbar { grid-template-columns: repeat(2, 34px); top: 34px; left: 30px; }
-  .tool-btn { width: 34px; height: 34px; }
-  .tool-btn svg { width: 19px; height: 19px; }
-
-  /* Compact stats card */
-  #stats-card { font-size: 10px; padding: 4px 8px; right: 8px; bottom: 8px; }
 
   /* Smaller elevation graph */
   #nav-area { flex: 0 0 110px; height: 110px; min-height: 60px; }
@@ -653,6 +687,7 @@ button { font-family: inherit; }
 
 @media (max-width: 700px), (pointer: coarse) {
   #app { height: 100dvh; }
+  #btn-track-points { margin-inline-end: 0; }
   #titlebar { height: 44px; flex-basis: 44px; }
   .tb-menu-btn { min-height: 44px; }
   #left-panel, #sidebar-backdrop { top: 44px; }
@@ -661,12 +696,16 @@ button { font-family: inherit; }
   #mobile-actions button:disabled { opacity: .4; }
   #mobile-actions .active { background: var(--accent-dark); border-color: var(--accent); }
   #mobile-hint { display: block; padding: 3px 8px 5px; font-size: 11px; line-height: 1.3; min-height: 22px; background: var(--darker-silver); }
-  #toolbar { top: auto; bottom: 8px; left: 6px; right: 6px; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); padding: 5px; gap: 4px; }
+  #canvas-area { grid-template-rows: 24px minmax(0, 1fr) auto auto; min-height: 0; }
+  .ruler-north { grid-row: 1; }
+  .ruler-west, #main-canvas { grid-row: 2; }
+  #stats-card { grid-row: 3; padding: 4px 8px; flex-wrap: wrap; }
+  #stats-card .stat-value { margin-inline-end: 4px; }
+  #toolbar { grid-row: 4; display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); padding: 4px 5px; gap: 4px; border-block: 1px solid var(--light-silver); }
   #toolbar .toolbar-sep { display: none; }
-  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { display: flex; flex-direction: column; width: 100%; height: 48px; min-width: 0; padding: 3px 1px; gap: 2px; grid-column: auto; font-size: 10px; align-items: center; justify-content: center; }
+  #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { display: flex; flex-direction: column; width: 100%; height: 44px; min-width: 0; padding: 3px 1px; gap: 2px; margin: 0; font-size: 10px; align-items: center; justify-content: center; }
   .touch-tool-label { display: block; font-size: 10px; line-height: 12px; }
   #toolbar .tool-btn svg { width: 20px; height: 20px; }
-  #stats-card { bottom: auto; top: 28px; right: 5px; }
   #tab-bar .tab-btn, .sec-head { min-height: 44px; }
   .check-row label, .radio-row-group label { min-height: 44px; display: flex; align-items: center; }
   .styled-btn { min-height: 44px; }
@@ -684,6 +723,7 @@ button { font-family: inherit; }
 }
 @media (pointer: coarse) and (max-height: 500px), (max-width: 700px) and (max-height: 500px) {
   #nav-area { flex-basis: 60px; height: 60px; min-height: 60px; }
+  #elev-splitter { flex-basis: 18px; min-height: 18px; }
   #mobile-hint { display: none; }
   #toolbar { display: flex; overflow-x: auto; }
   #toolbar .tool-btn, #toolbar .sidebar-toggle-btn { flex: 1 0 52px; min-width: 52px; }

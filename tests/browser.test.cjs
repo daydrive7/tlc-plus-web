@@ -21,6 +21,9 @@ let server,browser;
  function watch(p){p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'||m.type()==='warning')errors.push(m.text());});}
  watch(page);await page.goto(base+'/');await page.waitForFunction(()=>S.heightMap&&document.getElementById('app').classList.contains('hidden')===false);await page.waitForTimeout(800);
  await page.getByRole('button',{name:'Use without remembered settings',exact:true}).click();
+ const desktopCanvas=await page.locator('#main-canvas').boundingBox();
+ const desktopTools=await page.locator('#toolbar').boundingBox();
+ assert.ok(desktopTools.y+desktopTools.height<=desktopCanvas.y,'Desktop tools must sit above the working canvas');
  await page.click('[data-tab="generators"]');await page.click('[data-gen="oval"]');await page.waitForTimeout(100);
  await page.click('[data-tab="decorations"]');await page.click('#deco-palette button[data-type="1"]');await page.click('#deco-fill');
  async function checkPalette(p){
@@ -65,6 +68,8 @@ let server,browser;
  async function tapPoint(p){await event('touchStart',[p]);await event('touchEnd',[]);await mobile.waitForTimeout(50);}
  async function dragPoint(a,b){await event('touchStart',[a]);await event('touchMove',[b]);await event('touchEnd',[]);await mobile.waitForTimeout(50);}
  const rect=await mobile.locator('#main-canvas').boundingBox();
+ const touchTools=await mobile.locator('#toolbar').boundingBox();
+ assert.ok(rect.y+rect.height<=touchTools.y,'Touch tools must sit below the working canvas');
  await mobile.click('[data-tool="pen"]');
  for(const p of [[80,120],[260,140],[190,260]])await tapPoint([rect.x+p[0],rect.y+p[1]]);
  assert.equal(await mobile.evaluate(()=>polygon.length),3,'Touch taps add nodes');

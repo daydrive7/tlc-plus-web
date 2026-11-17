@@ -564,7 +564,10 @@ function applyLanguageToDom() {
       if (textNodes.length) textNodes[textNodes.length - 1].textContent = ' ' + translated;
     }
   };
-  document.querySelectorAll('#tab-bar .tab-btn, .sec-label, .slider-row > label, .check-row label, .styled-btn, .radio-row-group label, #stats-card .stat-label, .sidebar-toggle-btn').forEach(translateText);
+  document.querySelectorAll('#tab-bar .tab-btn, .sec-label, .slider-row > label, .check-row label, .styled-btn, .radio-row-group label, #stats-card .stat-label, .sidebar-toggle-btn, .elevation-label').forEach(translateText);
+  document.querySelectorAll('#toolbar .touch-tool-label').forEach(label => {
+    label.textContent = tr(label.dataset.origText);
+  });
   document.querySelectorAll('.tb-menu-btn').forEach(translateText);
   closeMenus();
   refreshAccessibleLabels();

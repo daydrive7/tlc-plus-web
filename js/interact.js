@@ -758,7 +758,8 @@ function pdmScheduleRestore() {
   pdmRestoreTimer = setTimeout(pdmRestoreFidelity, 150);
 }
 
-function mouseWheelScroll(mx, my, deltaY) {
+function mouseWheelScroll(mx, my, deltaY, deltaMode = 0) {
+  if (!deltaY) return;
   // PDM (Performance Draft Mode) toggle now fully controls draft behaviour:
   // ON  -> interaction draft mode + temporary heightmap fidelity drop
   // OFF -> full-detail rendering at all times
@@ -768,8 +769,9 @@ function mouseWheelScroll(mx, my, deltaY) {
     pdmTempFidelity();
   }
 
-  if (deltaY < 0) zoomEvent(mx, my, 'in');
-  else zoomEvent(mx, my, 'out');
+  const pixels = deltaY * (deltaMode === 1 ? 16 : deltaMode === 2 ? mainCanvas.clientHeight : 1);
+  const factor = Math.exp(Math.min(Math.abs(pixels), 240) * 0.002);
+  zoomEvent(mx, my, pixels < 0 ? 'in' : 'out', factor);
 
   if (zoomTimer) clearTimeout(zoomTimer);
   zoomTimer = setTimeout(() => {
@@ -846,7 +848,7 @@ function bindCanvasEvents() {
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const [mx, my] = localCoords(e);
-    mouseWheelScroll(mx, my, e.deltaY);
+    mouseWheelScroll(mx, my, e.deltaY, e.deltaMode);
   }, { passive: false });
 
   canvas.addEventListener('dblclick', (e) => {
